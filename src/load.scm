@@ -7,8 +7,8 @@
 (define generic-evaluation-environment
   (extend-top-level-environment user-initial-environment))
 
-(load "analyze-amb" generic-evaluation-environment)
-(load "repl-amb" generic-evaluation-environment)
+(load "analyze" generic-evaluation-environment)
+(load "repl" generic-evaluation-environment)
 
 
 (ge generic-evaluation-environment)
