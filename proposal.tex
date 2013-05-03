@@ -1,0 +1,42 @@
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+
+\title{6.945 Project Proposal: Stochastic AMB}
+\author{Jacob Hurwitz \and David Lawrence \and Steven Valdez}
+\begin{document}
+\maketitle
+
+\section{Project Proposal}
+Our proposed project is the extension of the existing AMB structure to allow for the use of a probabilistic AMB.
+
+The standard AMB takes a list of discrete choices; one can imagine AMB instead sampling over a continuous range of choices, since as ``real numbers from 0 to 1.'' Even more generically, AMB could sample from discrete or continuous probability distributions, such as a uniform distribution of reals from 0 to 1" or "the unit normal distribution." One can build probability distributions by starting with known distributions (eg, a normal distribution with a specified mean and standard deviation) and summing them to form new probability distributions.  The stochastic AMB system would sample from these distributions: a single iteration of the stochastic AMB evaluator returns a single sample point from the input distribution.
+
+We'd need to create a generic AMB interface so that the existing discrete AMB could coexist with stochastic AMB over integer ranges (and other user-defined types of stochastic AMB).  We'd have to extend the existing exponential search which is used to evaluate AMB to allow for efficient evaluation by random sampling in the case of thousands or millions of possible branches.  Ideally, we could write something like a Monte Carlo integrator using AMB without explicitly interacting with any other source of randomness.
+
+\section{Division}
+The major components of this system can be divided as follows:
+
+\subsection{Stochastic AMB}
+The implementation of the new AMB function that takes in probabilistic objects. This would be the principal portion of the project that would act as the front end of the extension. The probabilistic AMB is dispatched based on the type of distribution being sampled. Additionally, this component of the project would include writing the wrapper functions to sample many points (up to a certain precision) and output a distribution of results.
+
+\subsection{Probabilistic Objects}
+This component of the system would be responsible for representing the probabilistic inputs and outputs to the system, and cleanly representing the limitless versions of distributions. In addition, it would be responsible for converting these unlimited/infinite series into bounded probabilistic distributions up to a specified precision. It would be nice to also implement common arithmetic operations on probabilistic objects, such as those commonly used to compute results from Monte Carlo simulations.
+
+\subsection{Applications}
+The final part involves applying the system to real-life examples. For instance, one simple application is the well-known Monte Carlo simulation to approximate $\pi$ using the ratio of a square's area to its inscribed circle's area. We would consider other applications of randomized algorithims such as quick-sort with random pivot selection, Thorup's algorithm, Karger's algorithm, and Monte Carlo integration, . As much as possible, we also want to demonstrate (and test) our system's performance by porting useful physical simulations to use our system.
+
+\section{Project Plan}
+\subsection{Implementation}
+This system will be implemented in MIT/GNU Scheme, extending the AMB libraries provided in 6.945.  (We'll use the continuation-based implementation, not the embedded interpreter.)  The final implementation of this design will be released under the MIT Free Software license.
+
+\subsection{Documentation}
+All the major design decisions will be documented in our repository and any smaller implementation features that only affect individual components of the system will be documented as comments in the final Scheme files.
+
+\subsection{Division of Work}
+The three major sections of the project will each be assigned to one of the members of our team. In addition, we will all be working on carefully documenting each individual component.
+
+\subsection{Deadlines}
+Deadlines for this project will be set by the team at various team meetings, with both an initial deadline and revision deadline for each subcomponent (the latter being for fixes that are needed for the subcomponents or for integration between the various components).  Roughly speaking, we hope to have a proof-of-concept implementation working by April 15, a fully featured implementation by May 1, and a full suite of example use cases finished by May 15.
+
+\end{document}
