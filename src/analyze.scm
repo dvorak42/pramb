@@ -78,7 +78,7 @@
   begin?)
 
 (define (analyze-application exp)
-  (let ((f(proc (analyze (operator exp)))
+  (let ((fproc (analyze (operator exp)))
         (aprocs (map analyze (operands exp))))
     (lambda (env succeed fail)
       (fproc env
