@@ -121,12 +121,13 @@
 
 (defhandler execute-application
   (lambda (proc args succeed fail)
-    ((procedure-body proc)
-     (extend-environment (procedure-parameters proc)
-			 args
-			 (procedure-environment proc))
-     succeed
-     fail))
+    (let ((func (if (list? (procedure-parameters proc)) identity list)))
+      ((procedure-body proc)
+       (extend-environment (func (procedure-parameters proc))
+			   (func args)
+			   (procedure-environment proc))
+       succeed
+       fail)))
   compound-procedure?)
 
 ;;; There are two useful kinds of assignments in AMB
