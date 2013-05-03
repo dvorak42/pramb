@@ -188,3 +188,5 @@
 
 (define (amb-alternatives exp) (cdr exp))
 
+(define (amb-cont? exp)
+  (and (pair? exp) (eq? (car exp) 'amb-cont)))
