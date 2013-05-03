@@ -180,22 +180,19 @@
 
 (defhandler analyze analyze-amb amb?)
 
-(define (amb-succeed value)
-  (pp `(amb-succeed ,value)))
-(define (amb-fail)
-  (pp `(amb-fail)))
-
 ; exp looks like (amb-cont proc) where proc takes two arguments
 (define (analyze-amb-cont exp)
   (let ((func (analyze (cadr exp))))
     (lambda (env succeed fail)
-      (func env
-	    (lambda (proc proc-fail) 
-	      (execute-application proc
-				   (list amb-succeed amb-fail)
-				   succeed
-				   proc-fail))
-	    fail))))
+			(let loop ()
+				(func env
+							(lambda (proc proc-fail) 
+								(execute-application proc
+																		 (list (lambda (r) (succeed r loop))
+																					 loop)
+																		 succeed
+																		 proc-fail))
+							fail)))))
 
 (defhandler analyze analyze-amb-cont amb-cont?)
 
