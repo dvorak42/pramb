@@ -17,17 +17,36 @@
 
 
 ;;; Compound procedures
+#|
+More information on MIT scheme records at:
+http://groups.csail.mit.edu/mac/projects/scheme/documentation/scheme_11.html#SEC110
 
-(define (make-compound-procedure vars bproc env)
-  (vector 'compound-procedure vars bproc env))
+(define-record-type <record-name>
+    (<record-constructor> <fieldname0> ...)
+    <predicate>
+  (<fieldname0> <fieldname0-accessor>)
+  ...)
+|#
 
-(define (compound-procedure? obj)
-  (and (vector? obj)
-       (eq? (vector-ref obj 0) 'compound-procedure)))
+(define-record-type compound-procedure
+    (make-compound-procedure vars bproc env)
+    compound-procedure?
+  (vars  procedure-parameters)
+  (bproc procedure-body)
+  (env   procedure-environment))
 
-(define (procedure-parameters p) (vector-ref p 1))
-(define (procedure-body p) (vector-ref p 2))
-(define (procedure-environment p) (vector-ref p 3))
+#|
+ (define (make-compound-procedure vars bproc env)
+   (vector 'compound-procedure vars bproc env))
+
+ (define (compound-procedure? obj)
+   (and (vector? obj)
+	(eq? (vector-ref obj 0) 'compound-procedure)))
+
+ (define (procedure-parameters p) (vector-ref p 1))
+ (define (procedure-body p) (vector-ref p 2))
+ (define (procedure-environment p) (vector-ref p 3))
+|#
 
 ;;; An ENVIRONMENT is a chain of FRAMES, made of vectors.
 
@@ -42,7 +61,7 @@
 (define (environment-values env) (vector-ref env 1))
 (define (environment-parent env) (vector-ref env 2))
 
-(define the-empty-environment '())
+(define the-empty-environment (list '*the-empty-environment*))
 
 (define (lookup-variable-value var env)
   (let plp ((env env))

@@ -1,4 +1,4 @@
-;;; -*- Mode:Scheme -*- 
+;;; -*- Mode:Scheme; Base:10 -*- 
 
 (declare (usual-integrations))
 
@@ -31,7 +31,6 @@
 ;;; Assignment--- SET!
 
 (define (assignment? exp) (tagged-list? exp 'set!))
-(define (permanent-assignment? exp) (tagged-list? exp 'set!!))
 
 (define (assignment-variable assn) (cadr  assn))
 (define (assignment-value    assn) (caddr assn))
@@ -186,5 +185,4 @@
 (define (amb? exp)
   (and (pair? exp) (eq? (car exp) 'amb)))
 
-(define (amb-alternatives exp) (cdr exp))
-
+(define (permanent-assignment? exp) (tagged-list? exp 'set!!))

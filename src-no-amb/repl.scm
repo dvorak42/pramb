@@ -1,4 +1,5 @@
-;;;; Read-eval-print loop for extended Scheme interpreter
+; Read-eval-print loop for extended Scheme interpreter
+;;;
 
 (declare (usual-integrations write write-line pp eval))
 
