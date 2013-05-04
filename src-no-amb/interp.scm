@@ -46,7 +46,7 @@
 	(eval (if-consequent expression) environment)
 	(eval (if-alternative expression) environment)))
   if?)
-
+
 (defhandler eval
   (lambda (expression environment)
     (eval (cond->if expression) environment))
@@ -74,6 +74,7 @@
 
 (defhandler eval
   (lambda (expression environment)
+    ;; MODIFIES ENVIRONMENT
     (define-variable! (definition-variable expression)
       (eval (definition-value expression) environment)
       environment)
@@ -82,11 +83,12 @@
 
 (defhandler eval
   (lambda (expression environment)
+    ;; MODIFIES ENVIRONMENT
     (set-variable-value! (assignment-variable expression)
       (eval (assignment-value expression) environment)
       environment))
   assignment?)
-
+
 (define apply
   (make-generic-operator 3 'apply default-apply))
 
@@ -118,6 +120,7 @@
 		(procedure-parameters procedure)
 		operands)))
       (eval (procedure-body procedure)
+      ;; MODIFIES ENVIRONMENT
 	    (extend-environment
 	     (map procedure-parameter-name
 		  (procedure-parameters procedure))
