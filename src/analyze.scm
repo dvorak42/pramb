@@ -166,18 +166,20 @@
 
 
 ;;; AMB, itself!
+(define f-u (make-queue))
 
 ; exp looks like (amb . alternatives)
 (define (analyze-amb exp)
   (let ((aprocs (map analyze (amb-alternatives exp))))
     (lambda (env succeed fail)
       (let loop ((alts aprocs))
-	(if (null? alts)
-	    (fail)
-	    ((car alts) env
-	                succeed
-			(lambda ()
-			  (loop (cdr alts)))))))))
+        (enqueue! f-u (lambda () (loop (cdr alts))))
+  (if (null? alts)
+      (fail)
+      ((car alts) env
+                  succeed
+      (lambda ()
+        ((dequeue! f-u)))))))))
 
 (defhandler analyze analyze-amb amb?)
 
@@ -189,11 +191,12 @@
   (let ((func (analyze (cadr exp))))
     (lambda (env succeed fail)
       (let loop ()
-	(func env
-	      (lambda (proc proc-fail) 
-		(execute-application
-		 proc
-		 (list (lambda (r) (succeed r loop)) proc-fail)
+        (enqueue! f-u loop)
+  (func env
+        (lambda (proc proc-fail) 
+    (execute-application
+     proc
+     (list (lambda (r) (succeed r (dequeue! f-u))) proc-fail)
 		 succeed
 		 proc-fail))
 	      fail)))))
