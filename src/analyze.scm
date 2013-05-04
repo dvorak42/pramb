@@ -190,16 +190,16 @@
 (define (analyze-amb-cont exp)
   (let ((func (analyze (cadr exp))))
     (lambda (env succeed fail)
-      (let loop ()
-        (enqueue! fail-queue loop)
   (func env
         (lambda (proc proc-fail) 
-    (execute-application
+    (let loop ()
+        (enqueue! fail-queue loop)
+		(execute-application
      proc
      (list (lambda (r) (succeed r (lambda () ((dequeue! fail-queue))))) proc-fail)
 		 succeed
-		 proc-fail))
-	      fail)))))
+		 proc-fail)))
+	      fail))))
 
 (defhandler analyze analyze-amb-cont amb-cont?)
 
