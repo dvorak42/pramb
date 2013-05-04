@@ -166,20 +166,21 @@
 
 
 ;;; AMB, itself!
-(define fail-queue (make-queue))
+;(define fail-queue (make-queue))
 
 ; exp looks like (amb . alternatives)
 (define (analyze-amb exp)
   (let ((aprocs (map analyze (amb-alternatives exp))))
     (lambda (env succeed fail)
       (let loop ((alts aprocs))
-        (if (not (null? alts)) (enqueue! fail-queue (lambda () (loop (cdr alts)))))
+;        (if (not (null? alts)) (enqueue! fail-queue (lambda () (loop (cdr alts)))))
   (if (null? alts)
-      (if (queue-empty? fail-queue) (fail) ((dequeue! fail-queue)))
+			(fail)
+;      (if (queue-empty? fail-queue) (fail) ((dequeue! fail-queue)))
       ((car alts) env
                   succeed
       (lambda ()
-        ((if (queue-empty? fail-queue) (fail) ((dequeue! fail-queue)))))))))))
+        ((loop (cdr alts))))))))));if (queue-empty? fail-queue) (fail) ((dequeue! fail-queue)))))))))))
 
 (defhandler analyze analyze-amb amb?)
 
@@ -193,11 +194,11 @@
       (func env
             (lambda (proc proc-fail) 
               (let loop ()
-                (enqueue! fail-queue loop)
+;                (enqueue! fail-queue loop)
                 (execute-application
                  proc
                  (list (lambda (r)
-                         (succeed r (lambda () ((dequeue! fail-queue)))))
+                         (succeed r loop));(lambda () ((dequeue! fail-queue)))))
                        proc-fail)
                  succeed
                  proc-fail)))
