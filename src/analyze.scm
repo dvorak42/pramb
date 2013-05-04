@@ -173,13 +173,13 @@
   (let ((aprocs (map analyze (amb-alternatives exp))))
     (lambda (env succeed fail)
       (let loop ((alts aprocs))
-        (enqueue! fail-queue (lambda () (loop (cdr alts))))
+        (if (not (null? alts)) (enqueue! fail-queue (lambda () (loop (cdr alts)))))
   (if (null? alts)
-      (if (queue-empty? fail-queue) (fail) (dequeue! fail-queue))
+      (if (queue-empty? fail-queue) (fail) ((dequeue! fail-queue)))
       ((car alts) env
                   succeed
       (lambda ()
-        ((dequeue! fail-queue)))))))))
+        ((if (queue-empty? fail-queue) (fail) ((dequeue! fail-queue)))))))))))
 
 (defhandler analyze analyze-amb amb?)
 
