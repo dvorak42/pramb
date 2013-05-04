@@ -2,6 +2,8 @@
 ;;;   Execution procedures take environment 
 ;;;   and two continuations: SUCCEED and FAIL
 
+(define fail-queue (make-queue))
+
 (define (ambeval exp env succeed fail)
   ((analyze exp) env succeed fail))
 
@@ -142,7 +144,11 @@
              (lambda (new-val val-fail)
                (let ((old-val (lookup-variable-value var env)))
                  (set-variable-value! var new-val env)
-                 (succeed 'OK
+								 (set! fail-queue (cons (cons (lambda () 
+																									(set-variable-value! var old-val env)
+																									((dequeue! fail-queue))) (car fail-queue)) (cdr fail-queue)))
+
+								 (succeed 'OK
                    (lambda ()
                      (set-variable-value! var old-val env)
                      (val-fail)))))
@@ -166,7 +172,6 @@
 
 
 ;;; AMB, itself!
-(define fail-queue (make-queue))
 
 ; exp looks like (amb . alternatives)
 (define (analyze-amb exp)
