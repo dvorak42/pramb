@@ -9,7 +9,7 @@
   (make-generic-operator 1 'analyze
     (lambda (exp)
       (cond ((application? exp) (analyze-application exp))
-	    (else (error "Unknown expression type" exp))))))
+            (else (error "Unknown expression type" exp))))))
 
 (define (analyze-self-evaluating exp)
   (lambda (env succeed fail)
@@ -37,7 +37,7 @@
         (bproc (analyze (lambda-body exp))))
     (lambda (env succeed fail)
       (succeed (make-compound-procedure vars bproc env)
-	       fail))))
+               fail))))
 
 (defhandler analyze analyze-lambda lambda?)
 
@@ -48,11 +48,11 @@
         (aproc (analyze (if-alternative exp))))
     (lambda (env succeed fail)
       (pproc env
-	     (lambda (pred-value pred-fail)
-	       (if (true? pred-value)
-		   (cproc env succeed pred-fail)
-		   (aproc env succeed pred-fail)))
-	     fail))))
+             (lambda (pred-value pred-fail)
+               (if (true? pred-value)
+                   (cproc env succeed pred-fail)
+                   (aproc env succeed pred-fail)))
+             fail))))
 
 (defhandler analyze analyze-if if?)
 
@@ -60,9 +60,9 @@
   (define (sequentially proc1 proc2)
     (lambda (env succeed fail)
       (proc1 env
-	     (lambda (proc1-value proc1-fail)
-	       (proc2 env succeed proc1-fail))
-	     fail)))
+             (lambda (proc1-value proc1-fail)
+               (proc2 env succeed proc1-fail))
+             fail)))
   (define (loop first-proc rest-procs)
     (if (null? rest-procs)
         first-proc
@@ -82,32 +82,32 @@
         (aprocs (map analyze (operands exp))))
     (lambda (env succeed fail)
       (fproc env
-	     (lambda (proc proc-fail)
-	       (get-args aprocs env
-			 (lambda (args args-fail)
-			   (execute-application proc
-						args
-						succeed
-						args-fail))
-			 proc-fail))
-	     fail))))
+             (lambda (proc proc-fail)
+               (get-args aprocs env
+                         (lambda (args args-fail)
+                           (execute-application proc
+                                                args
+                                                succeed
+                                                args-fail))
+                         proc-fail))
+             fail))))
 
 (define (get-args aprocs env succeed fail)
   (cond ((null? aprocs) (succeed '() fail))
-	((null? (cdr aprocs))
-	 ((car aprocs) env
-	  (lambda (arg fail)
-	    (succeed (list arg) fail))
-	  fail))
-	(else
-	 ((car aprocs) env
-	  (lambda (arg fail)
-	    (get-args (cdr aprocs) env
-		      (lambda (args fail)
-			(succeed (cons arg args)
-				 fail))
-		      fail))
-	  fail))))
+        ((null? (cdr aprocs))
+         ((car aprocs) env
+          (lambda (arg fail)
+            (succeed (list arg) fail))
+          fail))
+        (else
+         ((car aprocs) env
+          (lambda (arg fail)
+            (get-args (cdr aprocs) env
+                      (lambda (args fail)
+                        (succeed (cons arg args)
+                                 fail))
+                      fail))
+          fail))))
 
 (define execute-application
   (make-generic-operator 4 'execute-application
@@ -124,8 +124,8 @@
     (let ((func (if (list? (procedure-parameters proc)) identity list)))
       ((procedure-body proc)
        (extend-environment (func (procedure-parameters proc))
-			   (func args)
-			   (procedure-environment proc))
+                           (func args)
+                           (procedure-environment proc))
        succeed
        fail)))
   compound-procedure?)
@@ -139,14 +139,14 @@
         (vproc (analyze (assignment-value exp))))
     (lambda (env succeed fail)
       (vproc env
-	     (lambda (new-val val-fail)
-	       (let ((old-val (lookup-variable-value var env)))
-		 (set-variable-value! var new-val env)
-		 (succeed 'OK
-		   (lambda ()
-		     (set-variable-value! var old-val env)
-		     (val-fail)))))
-	     fail))))
+             (lambda (new-val val-fail)
+               (let ((old-val (lookup-variable-value var env)))
+                 (set-variable-value! var new-val env)
+                 (succeed 'OK
+                   (lambda ()
+                     (set-variable-value! var old-val env)
+                     (val-fail)))))
+             fail))))
 
 (defhandler analyze
   analyze-undoable-assignment
@@ -157,10 +157,10 @@
         (vproc (analyze (definition-value exp))))
     (lambda (env succeed fail)
       (vproc env
-	     (lambda (new-val val-fail)
-	       (define-variable! var new-val env)
-	       (succeed var val-fail))
-	     fail))))
+             (lambda (new-val val-fail)
+               (define-variable! var new-val env)
+               (succeed var val-fail))
+             fail))))
 
 (defhandler analyze analyze-definition definition?)
 
@@ -190,16 +190,18 @@
 (define (analyze-amb-cont exp)
   (let ((func (analyze (cadr exp))))
     (lambda (env succeed fail)
-  (func env
-        (lambda (proc proc-fail) 
-    (let loop ()
-        (enqueue! fail-queue loop)
-		(execute-application
-     proc
-     (list (lambda (r) (succeed r (lambda () ((dequeue! fail-queue))))) proc-fail)
-		 succeed
-		 proc-fail)))
-	      fail))))
+      (func env
+            (lambda (proc proc-fail) 
+              (let loop ()
+                (enqueue! fail-queue loop)
+                (execute-application
+                 proc
+                 (list (lambda (r)
+                         (succeed r (lambda () ((dequeue! fail-queue)))))
+                       proc-fail)
+                 succeed
+                 proc-fail)))
+            fail))))
 
 (defhandler analyze analyze-amb-cont amb-cont?)
 
