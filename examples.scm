@@ -28,22 +28,51 @@
 ; on-demand using several different strategies.
 (amb-average-with-precision (f (amb-unit-sphere)) 10)
 
-(amb-cont (regular-amb . options)) === (amb . options)
+; (amb-cont (regular-amb . options)) === (amb . options)
 
 (define (regular-amb . options)
   (lambda (succeed fail)
     (if (null? options)
-	(fail)
-	(let ((result (car options)))
-	  (set! options (cdr options))
-	  (succeed result)))))
+        (fail)
+        (let ((result (car options)))
+          (set! options (cdr options))
+          (succeed result)))))
+
+#|
+;;; Amb-Eval input:
+(amb-cont (regular-amb 1 2 3))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+1
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+2
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+3
+
+;;; Amb-Eval input:
+try-again
+;;; There are no more values of (amb-cont (regular-amb 1 2 3))
+
+;;; Amb-Eval input:
+try-again
+;;; There is no current problem
+|#
 
 (define (amb-range low high)
   (lambda (succeed fail)
     (succeed (rand low high))))
 
 (define ((ambify func) . args) (amb (func args)))
-(ambify regular-amb) === amb
+; (ambify regular-amb) === amb
 
 
 Multiple evaluation strategies:
