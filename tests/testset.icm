@@ -1,0 +1,15 @@
+(load "load")
+(init)
+(define p #f)
+
+(let ((x (amb 1 2 3)))
+(if (= x 2) (set! p #t))
+(let ((y (amb 1 2)))
+(pp (list x y p))))
+
+try-again
+try-again
+try-again
+try-again
+try-again
+try-again
