@@ -196,7 +196,7 @@
         (lambda (proc proc-fail) 
     (execute-application
      proc
-     (list (lambda (r) (succeed r (dequeue! fail-queue))) proc-fail)
+     (list (lambda (r) (succeed r (lambda () (dequeue! fail-queue)))) proc-fail)
 		 succeed
 		 proc-fail))
 	      fail)))))
