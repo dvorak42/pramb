@@ -7,7 +7,7 @@
   (make-generic-operator 1 'write
     (access write user-initial-environment)))
 
-(define write-line 
+(define write-line
   (make-generic-operator 1 'write-line
     (access write-line user-initial-environment)))
 
@@ -36,18 +36,11 @@
 
 (define (read) (prompt-for-command-expression "eval> "))
 
-(define the-global-environment 'not-initialized)
-
 (define (init)
-  (set! the-global-environment
-	(extend-environment '() '() the-empty-environment))
-  (repl))
+  (let ((initial-env (extend-environment-list '() '() the-empty-environment)))
+    (let loop ((env initial-env))
+      (let* ((input (read))
+             (e (eval input env)))
+        (write-line (eval-val e))
+        (loop (eval-env e))))))
 
-(define (repl)
-  (if (eq? the-global-environment 'not-initialized)
-	  (error "Interpreter not initialized. Run (init) first."))
-  (let ((input (read)))
-    (write-line (eval input the-global-environment))
-    (repl)))
-
-(define go repl)
