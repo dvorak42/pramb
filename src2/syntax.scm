@@ -1,4 +1,4 @@
-;;; -*- Mode:Scheme -*- 
+;;; -*- Mode:Scheme -*-
 
 (declare (usual-integrations))
 
@@ -180,11 +180,11 @@
 (define (no-operands? args) (null? args))
 (define (first-operand args) (car args))
 (define (rest-operands args) (cdr args))
-
-;;; Another special form that will be needed later.
 
-(define (amb? exp)
-  (and (pair? exp) (eq? (car exp) 'amb)))
+;;; For generating random numbers
 
-(define (amb-alternatives exp) (cdr exp))
+(define (rand-range-int low high)
+  (+ low (random (- high low))))
 
+(define (rand-range low high)
+  (+ low (random (exact->inexact (- high low)))))

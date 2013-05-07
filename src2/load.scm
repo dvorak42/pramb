@@ -9,6 +9,6 @@
 
 (load "analyze" generic-evaluation-environment)
 (load "repl" generic-evaluation-environment)
-
+(load "amb" generic-evaluation-environment)
 
 (ge generic-evaluation-environment)

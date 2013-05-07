@@ -161,22 +161,6 @@
 (defhandler analyze analyze-definition definition?)
 
 
-;;; AMB, itself!
-
-(define (analyze-amb exp)
-  (let ((aprocs (map analyze (amb-alternatives exp))))
-    (lambda (env succeed fail)
-      (let loop ((alts aprocs))
-        (if (null? alts)
-            (fail)
-            ((car alts) env
-                        succeed
-                        (lambda ()
-                          (loop (cdr alts)))))))))
-
-(defhandler analyze analyze-amb amb?)
-
-
 ;;; Macros (definitions are in syntax.scm)
 
 (defhandler analyze
