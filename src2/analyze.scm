@@ -13,7 +13,7 @@
 
 (define (analyze-self-evaluating exp)
   (lambda (env succeed fail)
-    (succeed exp fail)))
+    (succeed exp env fail)))
 
 (defhandler analyze analyze-self-evaluating self-evaluating?)
 
@@ -21,14 +21,14 @@
 (define (analyze-quoted exp)
   (let ((qval (text-of-quotation exp)))
     (lambda (env succeed fail)
-      (succeed qval fail))))
+      (succeed qval env fail))))
 
 (defhandler analyze analyze-quoted quoted?)
 
 
 (define (analyze-variable exp)
   (lambda (env succeed fail)
-    (succeed (lookup-variable-value exp env) fail)))
+    (succeed (lookup-variable-value exp env) env fail)))
 
 (defhandler analyze analyze-variable variable?)
 
@@ -37,7 +37,7 @@
         (bproc (analyze (lambda-body exp))))
     (lambda (env succeed fail)
       (succeed (make-compound-procedure vars bproc env)
-               fail))))
+               env fail))))
 
 (defhandler analyze analyze-lambda lambda?)
 
@@ -48,10 +48,10 @@
         (aproc (analyze (if-alternative exp))))
     (lambda (env succeed fail)
       (pproc env
-             (lambda (pred-value pred-fail)
+             (lambda (pred-value pred-env pred-fail)
                (if (true? pred-value)
-                   (cproc env succeed pred-fail)
-                   (aproc env succeed pred-fail)))
+                   (cproc pred-env succeed pred-fail)
+                   (aproc pred-env succeed pred-fail)))
              fail))))
 
 (defhandler analyze analyze-if if?)
@@ -60,8 +60,8 @@
   (define (sequentially proc1 proc2)
     (lambda (env succeed fail)
       (proc1 env
-             (lambda (proc1-value proc1-fail)
-               (proc2 env succeed proc1-fail))
+             (lambda (proc1-value proc1-env proc1-fail)
+               (proc2 proc1-env succeed proc1-fail))
              fail)))
   (define (loop first-proc rest-procs)
     (if (null? rest-procs)
@@ -82,83 +82,80 @@
         (aprocs (map analyze (operands exp))))
     (lambda (env succeed fail)
       (fproc env
-             (lambda (proc proc-fail)
-               (get-args aprocs env
-                         (lambda (args args-fail)
+             (lambda (proc proc-env proc-fail)
+               (get-args aprocs proc-env
+                         (lambda (args args-env args-fail)
                            (execute-application proc
                                                 args
+                                                args-env
                                                 succeed
                                                 args-fail))
                          proc-fail))
              fail))))
 
 (define (get-args aprocs env succeed fail)
-  (cond ((null? aprocs) (succeed '() fail))
+  (cond ((null? aprocs) (succeed '() env fail))
         ((null? (cdr aprocs))
          ((car aprocs) env
-          (lambda (arg fail)
-            (succeed (list arg) fail))
+          (lambda (arg env2 fail) ;;; TODO env2?
+            (succeed (list arg) env fail))
           fail))
         (else
          ((car aprocs) env
-          (lambda (arg fail)
+          (lambda (arg env2 fail) ;;; TODO env2?
             (get-args (cdr aprocs) env
-                      (lambda (args fail)
+                      (lambda (args env fail)
                         (succeed (cons arg args)
-                                 fail))
+                                 env fail))
                       fail))
           fail))))
 
 (define execute-application
-  (make-generic-operator 4 'execute-application
-    (lambda (proc args succeed fail)
+  (make-generic-operator 5 'execute-application
+    (lambda (proc args env succeed fail)
       (error "Unknown procedure type" proc))))
 
 (defhandler execute-application
-  (lambda (proc args succeed fail)
-    (succeed (apply-primitive-procedure proc args) fail))
+  (lambda (proc args env succeed fail)
+    (succeed (apply-primitive-procedure proc args) env fail))
   strict-primitive-procedure?)
 
 (defhandler execute-application
-  (lambda (proc args succeed fail)
+  (lambda (proc args calling-env succeed fail)
     ((procedure-body proc)
      (extend-environment (procedure-parameters proc)
                          args
                          (procedure-environment proc))
-     succeed
+     (lambda (val env fail) (succeed val calling-env fail))
      fail))
   compound-procedure?)
-
-;;; There are two useful kinds of assignments in AMB
-;;; interpreters.  Undoable assignments and permanent
-;;; assignments.  The default is the undoable assignment.
 
 (define (analyze-undoable-assignment exp)
   (let ((var (assignment-variable exp))
         (vproc (analyze (assignment-value exp))))
     (lambda (env succeed fail)
       (vproc env
-             (lambda (new-val val-fail)
-               (let ((old-val (lookup-variable-value var env)))
-                 (set-variable-value! var new-val env)
-                 (succeed 'OK
-                   (lambda ()
-                     (set-variable-value! var old-val env)
-                     (val-fail)))))
+             (lambda (new-val new-env val-fail)
+               (succeed 'OK
+                 (extend-environment-one var new-val env) ;;; or new-env?
+                  val-fail))
              fail))))
 
 (defhandler analyze
   analyze-undoable-assignment
   assignment?)
 
+;;; TODO set!! permanent assignment?
+
 (define (analyze-definition exp)
   (let ((var (definition-variable exp))
         (vproc (analyze (definition-value exp))))
     (lambda (env succeed fail)
       (vproc env
-             (lambda (new-val val-fail)
-               (define-variable! var new-val env)
-               (succeed var val-fail))
+             (lambda (new-val new-env val-fail)
+               (succeed var
+                 (extend-environment-one var new-val env) ;;; or new-env?
+                 val-fail))
              fail))))
 
 (defhandler analyze analyze-definition definition?)

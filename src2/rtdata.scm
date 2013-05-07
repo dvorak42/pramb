@@ -1,4 +1,4 @@
-;;; -*- Mode:Scheme -*- 
+;;; -*- Mode:Scheme -*-
 
 (declare (usual-integrations))
 
@@ -38,6 +38,9 @@
 	  (error "Too many arguments supplied" variables values)
 	  (error "Too few arguments supplied" variables values))))
 
+(define (extend-environment-one variable value base-environment)
+  (extend-environment (list variable) (list value) base-environment))
+
 (define (environment-variables env) (vector-ref env 0))
 (define (environment-values env) (vector-ref env 1))
 (define (environment-parent env) (vector-ref env 2))
@@ -59,30 +62,3 @@
 
 (define (lookup-scheme-value var)
   (lexical-reference generic-evaluation-environment var))
-
-(define (define-variable! var val env)
-  (if (eq? env the-empty-environment)
-      (error "Unbound variable -- DEFINE" var) ;should not happen.
-      (let scan
-	  ((vars (vector-ref env 0))
-	   (vals (vector-ref env 1)))
-	(cond ((null? vars)
-	       (vector-set! env 0 (cons var (vector-ref env 0)))
-	       (vector-set! env 1 (cons val (vector-ref env 1))))
-	      ((eq? var (car vars))
-	       (set-car! vals val))
-	      (else
-	       (scan (cdr vars) (cdr vals)))))))
-
-(define (set-variable-value! var val env)
-  (let plp ((env env))
-    (if (eq? env the-empty-environment)
-	(error "Unbound variable -- SET!" var)
-	(let scan
-	    ((vars (vector-ref env 0))
-	     (vals (vector-ref env 1)))
-	  (cond ((null? vars) (plp (vector-ref env 2)))
-		((eq? var (car vars)) (set-car! vals val))
-		(else (scan (cdr vars) (cdr vals))))))))
-
-

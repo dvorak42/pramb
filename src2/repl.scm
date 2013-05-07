@@ -30,17 +30,15 @@
   (compose pp procedure-printable-representation)
   compound-procedure?)
 
- 
-(define (read) (prompt-for-command-expression "eval> "))
 
-(define the-global-environment)
+(define (read) (prompt-for-command-expression "eval> "))
 
 
 ;;; Initialization and driver loop
 
-(define (evaluator exp succeed fail)
+(define (evaluator exp env succeed fail)
   ((analyze exp)
-   the-global-environment
+   env
    succeed
    fail))
 
@@ -49,12 +47,10 @@
 (define output-prompt "\n;;; Amb-Eval value:\n")
 
 (define (init)
-  (set! the-global-environment
-	(extend-environment '() '() the-empty-environment))
-  (driver-loop))
+  (driver-loop (extend-environment '() '() the-empty-environment)))
 
-(define (driver-loop)
-  (define (internal-loop try-again)
+(define (driver-loop env)
+  (define (internal-loop env try-again)
     (let ((input
            (prompt-for-command-expression input-prompt)))
       (if (eq? input 'try-again)
@@ -64,17 +60,17 @@
             (display ";;; Starting a new problem ")
             (evaluator
              input
-             (lambda (val next-alternative)
+             env
+             (lambda (val new-env next-alternative) ;;; TODO
                (display output-prompt)
                (pp val)
-               (internal-loop next-alternative))
+               (internal-loop new-env next-alternative))
              (lambda ()
                (display ";;; There are no more values of ")
                (pp input)
-               (driver-loop)))))))
+               (driver-loop env)))))))
   (internal-loop
+    env
    (lambda ()
      (display ";;; There is no current problem")
-     (driver-loop))))
-
-(define go driver-loop)
+     (driver-loop env))))
