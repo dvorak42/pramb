@@ -125,7 +125,7 @@
       (vproc env
              (lambda (val new-env)
                (succeed 'OK
-                 (extend-environment-one var val new-env)))))))
+                 (set-variable-value! var val env)))))))
 
 (defhandler analyze
   analyze-undoable-assignment

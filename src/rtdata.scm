@@ -62,3 +62,14 @@
 
 (define (lookup-scheme-value var)
   (lexical-reference generic-evaluation-environment var))
+
+(define (set-variable-value! var val env)
+  (let plp ((env env))
+    (if (eq? env the-empty-environment)
+        (error "Unbound variable -- SET!" var)
+        (let scan
+            ((vars (vector-ref env 0))
+             (vals (vector-ref env 1)))
+          (cond ((null? vars) (plp (vector-ref env 2)))
+                ((eq? var (car vars)) (set-car! vals val))
+                (else (scan (cdr vars) (cdr vals))))))))
