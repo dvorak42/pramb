@@ -47,10 +47,14 @@
 (define output-prompt "\n;;; Amb-Eval value:\n")
 
 (define (init)
+  (set! fail-queue (make-queue))
   (driver-loop (extend-environment '() '() the-empty-environment)))
 
+(define (try-again)
+  ((dequeue! fail-queue)))
+
 (define (driver-loop env)
-  (define (internal-loop env try-again)
+  (define (internal-loop env)
     (let ((input
            (prompt-for-command-expression input-prompt)))
       (if (eq? input 'try-again)
@@ -61,16 +65,10 @@
             (evaluator
              input
              env
-             (lambda (val new-env next-alternative) ;;; TODO
+             (lambda (val new-env dummy-fail)
                (display output-prompt)
                (pp val)
-               (internal-loop new-env next-alternative))
-             (lambda ()
-               (display ";;; There are no more values of ")
-               (pp input)
-               (driver-loop env)))))))
+               (internal-loop new-env))
+             'dummy-fail)))))
   (internal-loop
-    env
-   (lambda ()
-     (display ";;; There is no current problem")
-     (driver-loop env))))
+   env))
