@@ -44,22 +44,18 @@
   (driver-loop (extend-environment '() '() the-empty-environment)))
 
 (define (driver-loop env)
-  (define (internal-loop env)
-    (let ((input (prompt-for-command-expression input-prompt)))
-      (if (eq? input 'try-again)
-          (fail)  ; fail is defined in amb.scm
-          (begin
-            (newline)
-            (display ";;; Starting a new problem ")
-            (set! *global-fail*
-                  (lambda ()
-                    (display ";;; There are no more values of ")
-                    (pp input)
-                    (driver-loop env)))
-            ((analyze input) env
-             (lambda (val new-env dummy-fail)
-               (display output-prompt)
-               (pp val)
-               (internal-loop new-env))
-             'dummy-fail)))))
-  (internal-loop env))
+  (let ((input (prompt-for-command-expression input-prompt)))
+    (if (eq? input 'try-again) (fail))  ; fail is defined in amb.scm
+    (newline)
+    (display ";;; Starting a new problem ")
+    (set! *global-fail*
+	  (lambda ()
+	    (display ";;; There are no more values of ")
+	    (pp input)
+	    (driver-loop env)))
+    ((analyze input) env
+     (lambda (val new-env dummy-fail)
+       (display output-prompt)
+       (pp val)
+       (driver-loop new-env))
+     'dummy-fail)))
