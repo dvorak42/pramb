@@ -1,3 +1,6 @@
+; TODO queue needs to empty on each (init)
+(define fail-queue (make-queue))
+
 ;;; amb iterates through a list of alternatives (in order), then fails
 
 (define (amb? exp)
@@ -10,13 +13,37 @@
     (lambda (env succeed fail)
       (let loop ((alts aprocs))
         (if (null? alts)
-            (fail)
-            ((car alts) env
-                        succeed
-                        (lambda ()
-                          (loop (cdr alts)))))))))
+            ((dequeue! fail-queue))
+	    (begin
+	      (enqueue! fail-queue (lambda () (loop (cdr alts))))
+	      ((car alts) env succeed 'dummy-fail)))))))
 
 (defhandler analyze analyze-amb amb?)
+
+;;; ambc is called with a continuation that is passed success and
+;;; failure continuations which it calls at its discretion.
+
+(define (ambc? exp)
+  (and (pair? exp) (eq? (car exp) 'ambc)))
+
+(define (analyze-ambc exp)
+  (let ((fproc (analyze (cadr exp))))
+    (lambda (env succeed fail)
+      (fproc env
+	     (lambda (proc proc-env proc-fail) 
+	       (let loop ()
+		 (enqueue! fail-queue loop)
+		 (execute-application
+		  proc
+		  (list (lambda (r)
+			  (succeed r proc-env 'dummy-fail))
+			(lambda () ((dequeue! fail-queue))))
+		  proc-env
+		  succeed
+		  'dummy-fail)))
+	     'dummy-fail))))
+
+(defhandler analyze analyze-ambc ambc?)
 
 ;;; amb-range provides a new real number in a given range, and never fails
 
@@ -35,11 +62,12 @@
           (high low-env
             (lambda (high-val high-env high-fail)
               (let loop ()
+		(enqueue! fail-queue loop)
                 ((analyze (rand-range low-val high-val))
                   high-env
                   succeed
                   loop)))
-            low-fail))
-        fail))))
+            'dummy-fail))
+        'dummy-fail))))
 
 (defhandler analyze analyze-amb-range amb-range?)

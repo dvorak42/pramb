@@ -97,16 +97,16 @@
   (cond ((null? aprocs) (succeed '() env fail))
         ((null? (cdr aprocs))
          ((car aprocs) env
-          (lambda (arg env2 fail) ;;; TODO env2?
-            (succeed (list arg) env fail))
+          (lambda (arg new-env fail)
+            (succeed (list arg) new-env fail))
           fail))
         (else
          ((car aprocs) env
-          (lambda (arg env2 fail) ;;; TODO env2?
-            (get-args (cdr aprocs) env
-                      (lambda (args env fail)
+          (lambda (arg new-env fail)
+            (get-args (cdr aprocs) new-env
+                      (lambda (args newer-env fail)
                         (succeed (cons arg args)
-                                 env fail))
+                                 newer-env fail))
                       fail))
           fail))))
 
@@ -135,9 +135,9 @@
         (vproc (analyze (assignment-value exp))))
     (lambda (env succeed fail)
       (vproc env
-             (lambda (new-val new-env val-fail)
+             (lambda (val new-env val-fail)
                (succeed 'OK
-                 (extend-environment-one var new-val env) ;;; or new-env?
+                 (extend-environment-one var val new-env)
                   val-fail))
              fail))))
 
@@ -152,9 +152,9 @@
         (vproc (analyze (definition-value exp))))
     (lambda (env succeed fail)
       (vproc env
-             (lambda (new-val new-env val-fail)
+             (lambda (val new-env val-fail)
                (succeed var
-                 (extend-environment-one var new-val env) ;;; or new-env?
+                 (extend-environment-one var val new-env)
                  val-fail))
              fail))))
 
