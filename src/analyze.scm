@@ -124,8 +124,8 @@
     (lambda (env succeed)
       (vproc env
              (lambda (val new-env)
-               (succeed 'OK
-                 (set-variable-value! var val env)))))))
+	       (set-variable-value! var val new-env)
+               (succeed 'OK new-env))))))
 
 (defhandler analyze
   analyze-undoable-assignment
