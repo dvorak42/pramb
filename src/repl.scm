@@ -30,17 +30,10 @@
   (compose pp procedure-printable-representation)
   compound-procedure?)
 
-
 (define (read) (prompt-for-command-expression "eval> "))
 
 
 ;;; Initialization and driver loop
-
-(define (evaluator exp env succeed fail)
-  ((analyze exp)
-   env
-   succeed
-   fail))
 
 (define input-prompt ";;; Amb-Eval input:\n")
 
@@ -52,25 +45,21 @@
 
 (define (driver-loop env)
   (define (internal-loop env)
-    (let ((input
-           (prompt-for-command-expression input-prompt)))
+    (let ((input (prompt-for-command-expression input-prompt)))
       (if (eq? input 'try-again)
           (fail)  ; fail is defined in amb.scm
           (begin
             (newline)
             (display ";;; Starting a new problem ")
-	    (set! *global-fail*
-		  (lambda ()
-		    (display ";;; There are no more values of ")
-		    (pp input)
-		    (driver-loop env)))
-            (evaluator
-             input
-             env
+            (set! *global-fail*
+                  (lambda ()
+                    (display ";;; There are no more values of ")
+                    (pp input)
+                    (driver-loop env)))
+            ((analyze input) env
              (lambda (val new-env dummy-fail)
                (display output-prompt)
                (pp val)
                (internal-loop new-env))
              'dummy-fail)))))
-  (internal-loop
-   env))
+  (internal-loop env))
