@@ -1,0 +1,9 @@
+(load "load")
+(init)
+
+(define (amb-range low high)
+  (ambc
+   (lambda (succeed fail)
+     (succeed (+ low (random (exact->inexact (- high low))))))))
+
+     

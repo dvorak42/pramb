@@ -180,11 +180,3 @@
 (define (no-operands? args) (null? args))
 (define (first-operand args) (car args))
 (define (rest-operands args) (cdr args))
-
-;;; For generating random numbers
-
-(define (rand-range-int low high)
-  (+ low (random (- high low))))
-
-(define (rand-range low high)
-  (+ low (random (exact->inexact (- high low)))))

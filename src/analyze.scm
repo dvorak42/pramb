@@ -109,12 +109,13 @@
   strict-primitive-procedure?)
 
 (defhandler execute-application
-  (lambda (proc args calling-env succeed)
-    ((procedure-body proc)
-     (extend-environment (procedure-parameters proc)
-                         args
-                         (procedure-environment proc))
-     (lambda (val env) (succeed val calling-env))))
+  (lambda (proc args env succeed)
+    (let ((func (if (list? (procedure-parameters proc)) identity list)))
+      ((procedure-body proc)
+       (extend-environment (func (procedure-parameters proc))
+			   (func args)
+			   (procedure-environment proc))
+       (lambda (val new-env) (succeed val env)))))  ; *not* new-env
   compound-procedure?)
 
 (define (analyze-undoable-assignment exp)

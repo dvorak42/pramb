@@ -11,7 +11,7 @@
 ;;; amb iterates through a list of alternatives (in order), then fails
 
 (define (amb? exp)
-  (and (pair? exp) (eq? (car exp) 'amb)))
+  (and (pair? exp) (eq? (car exp) 'amb-orig)))
 
 (define (amb-alternatives exp) (cdr exp))
 
@@ -28,7 +28,8 @@
 (defhandler analyze analyze-amb amb?)
 
 ;;; ambc is called with a continuation that is passed success and
-;;; failure continuations which it calls at its discretion.
+;;; failure continuations which it calls at its discretion:
+;;;   (ambc (lambda (succeed fail) ...))
 
 (define (ambc? exp)
   (and (pair? exp) (eq? (car exp) 'ambc)))
@@ -49,27 +50,3 @@
 		  succeed)))))))
 
 (defhandler analyze analyze-ambc ambc?)
-
-;;; amb-range provides a new real number in a given range, and never fails
-
-(define (amb-range? exp)
-  (and (pair? exp) (eq? (car exp) 'amb-range)))
-
-(define (amb-range-low exp) (cadr exp))
-(define (amb-range-high exp) (caddr exp))
-
-(define (analyze-amb-range exp)
-  (let ((low (analyze (amb-range-low exp)))
-        (high (analyze (amb-range-high exp))))
-    (lambda (env succeed)
-      (low env
-        (lambda (low-val low-env)
-          (high low-env
-            (lambda (high-val high-env)
-              (let loop ()
-		(add-branch loop)
-                ((analyze (rand-range low-val high-val))
-                  high-env
-                  succeed)))))))))
-
-(defhandler analyze analyze-amb-range amb-range?)
