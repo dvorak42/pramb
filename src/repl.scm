@@ -54,8 +54,7 @@
 	    (pp input)
 	    (driver-loop env)))
     ((analyze input) env
-     (lambda (val new-env dummy-fail)
+     (lambda (val new-env)
        (display output-prompt)
        (pp val)
-       (driver-loop new-env))
-     'dummy-fail)))
+       (driver-loop new-env)))))

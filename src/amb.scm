@@ -17,13 +17,13 @@
 
 (define (analyze-amb exp)
   (let ((aprocs (map analyze (amb-alternatives exp))))
-    (lambda (env succeed dummy-fail)
+    (lambda (env succeed)
       (let loop ((alts aprocs))
         (if (null? alts)
             (fail)
 	    (begin
 	      (add-branch (lambda () (loop (cdr alts))))
-	      ((car alts) env succeed 'dummy-fail)))))))
+	      ((car alts) env succeed)))))))
 
 (defhandler analyze analyze-amb amb?)
 
@@ -35,20 +35,18 @@
 
 (define (analyze-ambc exp)
   (let ((fproc (analyze (cadr exp))))
-    (lambda (env succeed dummy-fail)
+    (lambda (env succeed)
       (fproc env
-	     (lambda (proc proc-env dummy-fail) 
+	     (lambda (proc proc-env) 
 	       (let loop ()
 		 (add-branch loop)
 		 (execute-application
 		  proc
 		  (list (lambda (r)
-			  (succeed r proc-env 'dummy-fail))
+			  (succeed r proc-env))
 			fail)
 		  proc-env
-		  succeed
-		  'dummy-fail)))
-	     'dummy-fail))))
+		  succeed)))))))
 
 (defhandler analyze analyze-ambc ambc?)
 
@@ -63,18 +61,15 @@
 (define (analyze-amb-range exp)
   (let ((low (analyze (amb-range-low exp)))
         (high (analyze (amb-range-high exp))))
-    (lambda (env succeed dummy-fail)
+    (lambda (env succeed)
       (low env
-        (lambda (low-val low-env dummy-fail)
+        (lambda (low-val low-env)
           (high low-env
-            (lambda (high-val high-env dummy-fail)
+            (lambda (high-val high-env)
               (let loop ()
 		(add-branch loop)
                 ((analyze (rand-range low-val high-val))
                   high-env
-                  succeed
-                  loop)))
-            'dummy-fail))
-        'dummy-fail))))
+                  succeed)))))))))
 
 (defhandler analyze analyze-amb-range amb-range?)
