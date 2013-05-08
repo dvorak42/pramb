@@ -113,8 +113,8 @@
     (let ((func (if (list? (procedure-parameters proc)) identity list)))
       ((procedure-body proc)
        (extend-environment (func (procedure-parameters proc))
-			   (func args)
-			   (procedure-environment proc))
+                           (func args)
+                           (procedure-environment proc))
        (lambda (val new-env) (succeed val env)))))  ; *not* new-env
   compound-procedure?)
 
@@ -124,7 +124,7 @@
     (lambda (env succeed)
       (vproc env
              (lambda (val new-env)
-	       (set-variable-value! var val new-env)
+               (set-variable-value! var val new-env)
                (succeed 'OK new-env))))))
 
 (defhandler analyze

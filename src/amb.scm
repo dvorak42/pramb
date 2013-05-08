@@ -37,13 +37,13 @@
 (define (analyze-ambc exp)
   (let ((fproc (analyze (cadr exp))))
     (lambda (env succeed)
-      (fproc env
-	     (lambda (proc proc-env) 
-	       (let loop ()
+      (let loop ((amb-env env))
+	(fproc amb-env
+	       (lambda (proc proc-env)
 		 (execute-application
 		  proc
 		  (list (lambda (r)
-			  (add-branch loop)
+			  (add-branch (lambda () (loop proc-env)))
 			  (succeed r proc-env))
 			fail)
 		  proc-env
