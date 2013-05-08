@@ -40,13 +40,14 @@
       (fproc env
 	     (lambda (proc proc-env) 
 	       (let loop ()
-		 (add-branch loop)
 		 (execute-application
 		  proc
 		  (list (lambda (r)
+			  (add-branch loop)
 			  (succeed r proc-env))
 			fail)
 		  proc-env
-		  succeed)))))))
+		  (lambda (val env)
+		    (error "ambc argument unexpectedly returned")))))))))
 
 (defhandler analyze analyze-ambc ambc?)
