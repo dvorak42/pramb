@@ -1,5 +1,12 @@
-; TODO queue needs to empty on each (init)
-(define fail-queue (make-queue))
+(define *fail-queue*)   ; this is initialized in init in repl.scm
+(define *global-fail*)  ; this is set in driver-loop in repl.scm
+
+(define (add-branch cont)
+  (enqueue! *fail-queue* cont))
+(define (fail)
+  (if (queue-empty? *fail-queue*)
+      (*global-fail*)
+      ((dequeue! *fail-queue*))))
 
 ;;; amb iterates through a list of alternatives (in order), then fails
 
@@ -10,12 +17,12 @@
 
 (define (analyze-amb exp)
   (let ((aprocs (map analyze (amb-alternatives exp))))
-    (lambda (env succeed fail)
+    (lambda (env succeed dummy-fail)
       (let loop ((alts aprocs))
         (if (null? alts)
-            ((dequeue! fail-queue))
+            (fail)
 	    (begin
-	      (enqueue! fail-queue (lambda () (loop (cdr alts))))
+	      (add-branch (lambda () (loop (cdr alts))))
 	      ((car alts) env succeed 'dummy-fail)))))))
 
 (defhandler analyze analyze-amb amb?)
@@ -28,16 +35,16 @@
 
 (define (analyze-ambc exp)
   (let ((fproc (analyze (cadr exp))))
-    (lambda (env succeed fail)
+    (lambda (env succeed dummy-fail)
       (fproc env
-	     (lambda (proc proc-env proc-fail) 
+	     (lambda (proc proc-env dummy-fail) 
 	       (let loop ()
-		 (enqueue! fail-queue loop)
+		 (add-branch loop)
 		 (execute-application
 		  proc
 		  (list (lambda (r)
 			  (succeed r proc-env 'dummy-fail))
-			(lambda () ((dequeue! fail-queue))))
+			fail)
 		  proc-env
 		  succeed
 		  'dummy-fail)))
@@ -56,13 +63,13 @@
 (define (analyze-amb-range exp)
   (let ((low (analyze (amb-range-low exp)))
         (high (analyze (amb-range-high exp))))
-    (lambda (env succeed fail)
+    (lambda (env succeed dummy-fail)
       (low env
-        (lambda (low-val low-env low-fail)
+        (lambda (low-val low-env dummy-fail)
           (high low-env
-            (lambda (high-val high-env high-fail)
+            (lambda (high-val high-env dummy-fail)
               (let loop ()
-		(enqueue! fail-queue loop)
+		(add-branch loop)
                 ((analyze (rand-range low-val high-val))
                   high-env
                   succeed

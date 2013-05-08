@@ -47,21 +47,23 @@
 (define output-prompt "\n;;; Amb-Eval value:\n")
 
 (define (init)
-  (set! fail-queue (make-queue))
+  (set! *fail-queue* (make-queue))
   (driver-loop (extend-environment '() '() the-empty-environment)))
-
-(define (try-again)
-  ((dequeue! fail-queue)))
 
 (define (driver-loop env)
   (define (internal-loop env)
     (let ((input
            (prompt-for-command-expression input-prompt)))
       (if (eq? input 'try-again)
-          (try-again)
+          (fail)  ; fail is defined in amb.scm
           (begin
             (newline)
             (display ";;; Starting a new problem ")
+	    (set! *global-fail*
+		  (lambda ()
+		    (display ";;; There are no more values of ")
+		    (pp input)
+		    (driver-loop env)))
             (evaluator
              input
              env
