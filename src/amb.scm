@@ -1,4 +1,4 @@
-(define *fail-queue*)   ; this is initialized in init in repl.scm
+(define *fail-queue*)   ; this is set in driver-loop in repl.scm
 (define *global-fail*)  ; this is set in driver-loop in repl.scm
 
 (define (add-branch cont)

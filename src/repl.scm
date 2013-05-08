@@ -40,7 +40,6 @@
 (define output-prompt "\n;;; Amb-Eval value:\n")
 
 (define (init)
-  (set! *fail-queue* (make-queue))
   (driver-loop (extend-environment '() '() the-empty-environment)))
 
 (define (driver-loop env)
@@ -48,6 +47,7 @@
     (if (eq? input 'try-again) (fail))  ; fail is defined in amb.scm
     (newline)
     (display ";;; Starting a new problem ")
+    (set! *fail-queue* (make-queue))
     (set! *global-fail*
 	  (lambda ()
 	    (display ";;; There are no more values of ")
