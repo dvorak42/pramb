@@ -47,6 +47,13 @@
 
 (define the-empty-environment '())
 
+(define (copy-environment env)
+  (if (eq? env the-empty-environment)
+      env
+      (extend-environment (list-copy (environment-variables env))
+			  (list-copy (environment-values env))
+			  (copy-environment (environment-parent env)))))
+
 (define (lookup-variable-value var env)
   (let plp ((env env))
     (if (eq? env the-empty-environment)
