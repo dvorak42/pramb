@@ -38,9 +38,6 @@
 	  (error "Too many arguments supplied" variables values)
 	  (error "Too few arguments supplied" variables values))))
 
-(define (extend-environment-one variable value base-environment)
-  (extend-environment (list variable) (list value) base-environment))
-
 (define (environment-variables env) (vector-ref env 0))
 (define (environment-values env) (vector-ref env 1))
 (define (environment-parent env) (vector-ref env 2))
