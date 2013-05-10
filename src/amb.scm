@@ -10,7 +10,9 @@
 	(restore-environment-state (cdr pair))
 	((car pair)))))
 
-;;; amb iterates through a list of alternatives (in order), then fails
+;;; amb iterates through a list of alternatives (in order), then fails.
+;;; this version is called amb-orig: we define amb in the interpreter
+;;; using ambc.
 
 (define (amb? exp)
   (and (pair? exp) (eq? (car exp) 'amb-orig)))
@@ -39,8 +41,8 @@
 (define (analyze-ambc exp)
   (let ((fproc (analyze (cadr exp))))
     (lambda (succeed)
-      (let loop ()
-	(fproc (lambda (proc)
+      (fproc (lambda (proc)
+	       (let loop ()	
 		 (execute-application
 		  proc
 		  (list (lambda (r)
