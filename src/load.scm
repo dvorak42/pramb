@@ -2,7 +2,7 @@
 (load "ghelper" user-initial-environment)
 (load "syntax" user-initial-environment)
 (load "rtdata" user-initial-environment)
-
+(load "env" user-initial-environment)
 
 (define generic-evaluation-environment
   (extend-top-level-environment user-initial-environment))

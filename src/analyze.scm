@@ -1,45 +1,6 @@
 ;;;; Analyzing interpreter with AMB support (in amb.scm).
 ;;;   Execution procedures take a SUCCEED continuation.
 
-(define *env-stack*)
-(define (push-env! env)
-  (set! *env-stack* (cons env *env-stack*)))
-(define (pop-env!)
-  (let ((env (car *env-stack*)))
-    (set! *env-stack* (cdr *env-stack*))
-    env))
-(define (peek-env) (car *env-stack*))
-
-(define *proc-envs*)
-(define (add-proc-env proc)
-  (set! *proc-envs*
-	(cons (cons proc (peek-env))
-	      *proc-envs*)))
-(define (get-proc-env proc)
-  (cdr (assv proc *proc-envs*)))
-
-(define (grab-environment-state)
-  (define copied-frames (list (cons the-empty-environment
-				    the-empty-environment)))
-  (define (copy-frame env)
-    (if (not (assv env copied-frames))
-	(set! copied-frames
-	      (cons (cons env (extend-environment
-			       (list-copy (environment-variables env))
-			       (list-copy (environment-values env))
-			       (copy-frame (environment-parent env))))
-		    copied-frames)))
-    (cdr (assv env copied-frames)))
-  (cons (map copy-frame *env-stack*)
-	(map (lambda (pair)
-	       (cons (car pair) (copy-frame (cdr pair))))
-	     *proc-envs*)))
-
-(define (restore-environment-state state)
-  (set! *env-stack* (car state))
-  (set! *proc-envs* (cdr state)))
-
-
 (define analyze
   (make-generic-operator 1 'analyze
     (lambda (exp)
@@ -60,7 +21,7 @@
 
 
 (define (analyze-variable exp)
-  (lambda (succeed) (succeed (lookup-variable-value exp (peek-env)))))
+  (lambda (succeed) (succeed (lookup-variable-value exp))))
 
 (defhandler analyze analyze-variable variable?)
 
@@ -159,7 +120,7 @@
         (vproc (analyze (assignment-value exp))))
     (lambda (succeed)
       (vproc (lambda (val)
-               (set-variable-value! var val (peek-env))
+               (set-variable-value! var val)
                (succeed 'OK))))))
 
 (defhandler analyze
@@ -172,7 +133,7 @@
         (vproc (analyze (definition-value exp))))
     (lambda (succeed)
       (vproc (lambda (val)
-	       (define-variable! var val (peek-env))
+	       (define-variable! var val)
                (succeed val))))))
 
 (defhandler analyze analyze-definition definition?)
