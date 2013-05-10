@@ -98,8 +98,8 @@
 
 (defhandler execute-application
   (lambda (proc args succeed)
-    (succeed (apply-primitive-procedure proc args)))
-  strict-primitive-procedure?)
+    (succeed (apply proc args)))
+  procedure?)
 
 (defhandler execute-application
   (lambda (proc args succeed)

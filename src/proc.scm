@@ -1,10 +1,5 @@
 (declare (usual-integrations))
 
-;;; Primitive procedures are inherited from Scheme.
-
-(define strict-primitive-procedure? procedure?)
-(define apply-primitive-procedure apply)
-
 ;;; Compound procedures
 
 (define (make-compound-procedure vars bproc)
