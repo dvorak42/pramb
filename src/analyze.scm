@@ -1,5 +1,4 @@
-;;;; Analyzing interpreter with AMB support (in amb.scm).
-;;;   Execution procedures take a SUCCEED continuation.
+(declare (usual-integrations))
 
 (define analyze
   (make-generic-operator 1 'analyze

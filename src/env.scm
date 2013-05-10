@@ -1,3 +1,5 @@
+(declare (usual-integrations))
+
 (define *env-stack*)
 (define (push-env! env)
   (set! *env-stack* (cons env *env-stack*)))

@@ -1,5 +1,3 @@
-;;; -*- Mode:Scheme -*-
-
 (declare (usual-integrations))
 
 (define the-unspecified-value (list 'the-unspecified-value))

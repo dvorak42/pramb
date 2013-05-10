@@ -1,3 +1,5 @@
+(declare (usual-integrations))
+
 (define *fail-queue*)   ; this is set in driver-loop in repl.scm
 (define *global-fail*)  ; this is set in driver-loop in repl.scm
 
