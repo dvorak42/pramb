@@ -27,6 +27,7 @@
 		 (execute-application
 		  proc
 		  (list (lambda (r)
+			  (pop-env!)
 			  (add-branch loop)
 			  (succeed r))
 			fail)
