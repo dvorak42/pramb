@@ -74,16 +74,16 @@
                 (else (scan (cdr vars) (cdr vals))))))))
 
 (define (define-variable! var val)
-  (define env (peek-env))
-  (if (eq? env the-empty-environment)
-      (error "Unbound variable -- DEFINE" var) ;should not happen.
-      (let scan
-	  ((vars (vector-ref env 0))
-	   (vals (vector-ref env 1)))
-	(cond ((null? vars)
-	       (vector-set! env 0 (cons var (vector-ref env 0)))
-	       (vector-set! env 1 (cons val (vector-ref env 1))))
-	      ((eq? var (car vars))
-	       (set-car! vals val))
-	      (else
-	       (scan (cdr vars) (cdr vals)))))))
+  (let ((env (peek-env)))
+    (if (eq? env the-empty-environment)
+	(error "Unbound variable -- DEFINE" var) ;should not happen.
+	(let scan
+	    ((vars (vector-ref env 0))
+	     (vals (vector-ref env 1)))
+	  (cond ((null? vars)
+		 (vector-set! env 0 (cons var (vector-ref env 0)))
+		 (vector-set! env 1 (cons val (vector-ref env 1))))
+		((eq? var (car vars))
+		 (set-car! vals val))
+		(else
+		 (scan (cdr vars) (cdr vals))))))))
