@@ -8,12 +8,12 @@
   (let ((env (car *env-stack*)))
     (set! *env-stack* (cdr *env-stack*))
     env))
-(define (env) (car *env-stack*))
+(define (peek-env) (car *env-stack*))
 
 (define *proc-envs*)
 (define (add-proc-env proc)
   (set! *proc-envs*
-	(cons (cons proc (env))
+	(cons (cons proc (peek-env))
 	      *proc-envs*)))
 (define (get-proc-env proc)
   (cdr (assv proc *proc-envs*)))
@@ -60,7 +60,7 @@
 
 
 (define (analyze-variable exp)
-  (lambda (succeed) (succeed (lookup-variable-value exp (env)))))
+  (lambda (succeed) (succeed (lookup-variable-value exp (peek-env)))))
 
 (defhandler analyze analyze-variable variable?)
 
@@ -159,7 +159,7 @@
         (vproc (analyze (assignment-value exp))))
     (lambda (succeed)
       (vproc (lambda (val)
-               (set-variable-value! var val (env))
+               (set-variable-value! var val (peek-env))
                (succeed 'OK))))))
 
 (defhandler analyze
@@ -172,7 +172,7 @@
         (vproc (analyze (definition-value exp))))
     (lambda (succeed)
       (vproc (lambda (val)
-	       (define-variable! var val (env))
+	       (define-variable! var val (peek-env))
                (succeed val))))))
 
 (defhandler analyze analyze-definition definition?)
