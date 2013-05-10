@@ -40,9 +40,10 @@
 (define output-prompt "\n;;; Amb-Eval value:\n")
 
 (define (init)
-  (driver-loop (extend-environment '() '() the-empty-environment)))
+  (set! *env* (extend-environment '() '() the-empty-environment))
+  (driver-loop))
 
-(define (driver-loop env)
+(define (driver-loop)
   (let ((input (prompt-for-command-expression input-prompt)))
     (if (eq? input 'try-again) (fail))  ; fail is defined in amb.scm
     (newline)
@@ -52,9 +53,9 @@
 	  (lambda ()
 	    (display ";;; There are no more values of ")
 	    (pp input)
-	    (driver-loop env)))
-    ((analyze input) env
-     (lambda (val new-env)
+	    (driver-loop)))
+    ((analyze input)
+     (lambda (val)
        (display output-prompt)
        (pp val)
-       (driver-loop new-env)))))
+       (driver-loop)))))

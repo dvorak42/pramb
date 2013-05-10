@@ -2,11 +2,13 @@
 (define *global-fail*)  ; this is set in driver-loop in repl.scm
 
 (define (add-branch cont)
-  (enqueue! *fail-queue* cont))
+  (enqueue! *fail-queue* (cons cont (copy-environment *env*))))
 (define (fail)
   (if (queue-empty? *fail-queue*)
       (*global-fail*)
-      ((dequeue! *fail-queue*))))
+      (let ((pair (dequeue! *fail-queue*)))
+	(set! *env* (cdr pair))
+	((car pair)))))
 
 ;;; amb iterates through a list of alternatives (in order), then fails
 
@@ -17,13 +19,13 @@
 
 (define (analyze-amb exp)
   (let ((aprocs (map analyze (amb-alternatives exp))))
-    (lambda (env succeed)
+    (lambda (succeed)
       (let loop ((alts aprocs))
         (if (null? alts)
             (fail)
 	    (begin
 	      (add-branch (lambda () (loop (cdr alts))))
-	      ((car alts) env succeed)))))))
+	      ((car alts) succeed)))))))
 
 (defhandler analyze analyze-amb amb?)
 
@@ -36,18 +38,16 @@
 
 (define (analyze-ambc exp)
   (let ((fproc (analyze (cadr exp))))
-    (lambda (env succeed)
-      (let loop ((amb-env env))
-	(fproc amb-env
-	       (lambda (proc proc-env)
+    (lambda (succeed)
+      (let loop ()
+	(fproc (lambda (proc)
 		 (execute-application
 		  proc
 		  (list (lambda (r)
-			  (add-branch (lambda () (loop proc-env)))
-			  (succeed r proc-env))
+			  (add-branch loop)
+			  (succeed r))
 			fail)
-		  proc-env
-		  (lambda (val env)
+		  (lambda (val)
 		    (error "ambc argument unexpectedly returned")))))))))
 
 (defhandler analyze analyze-ambc ambc?)
