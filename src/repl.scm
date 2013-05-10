@@ -30,7 +30,7 @@
   (compose pp procedure-printable-representation)
   compound-procedure?)
 
-(define (read) (prompt-for-command-expression "eval> "))
+(define (reader) (prompt-for-command-expression "eval> "))
 
 
 ;;; Initialization and driver loop
@@ -62,3 +62,32 @@
        (display output-prompt)
        (pp val)
        (driver-loop)))))
+
+(define (repl-load file)
+  (set! *env-stack*
+	(list (extend-environment
+	       '() '() the-empty-environment)))
+  (set! *proc-envs* '())
+  (call-with-input-file file file-driver-loop)
+	(driver-loop))
+
+(define (file-driver-loop file)
+  (let ((input (read file)))
+		(if (not (eof-object? input))
+			(begin
+				(display input-prompt)
+        (pp input)
+        (if (eq? input 'try-again) (fail))  ; fail is defined in amb.scm
+        (newline)
+        (display ";;; Starting a new problem ")
+        (set! *fail-queue* (make-queue))
+        (set! *global-fail*
+              (lambda ()
+                (display ";;; There are no more values of ")
+                (pp input)
+                (driver-loop)))
+        ((analyze input)
+				 (lambda (val)
+					 (display output-prompt)
+					 (pp val)
+					 (file-driver-loop file)))))))
