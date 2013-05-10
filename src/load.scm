@@ -1,7 +1,7 @@
 (load "utils" user-initial-environment)
-(load "ghelper" user-initial-environment)
+(load "generics" user-initial-environment)
 (load "syntax" user-initial-environment)
-(load "rtdata" user-initial-environment)
+(load "proc" user-initial-environment)
 (load "env" user-initial-environment)
 
 (define generic-evaluation-environment
