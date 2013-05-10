@@ -10,27 +10,6 @@
 	(restore-environment-state (cdr pair))
 	((car pair)))))
 
-;;; amb iterates through a list of alternatives (in order), then fails.
-;;; this version is called amb-orig: we define amb in the interpreter
-;;; using ambc.
-
-(define (amb? exp)
-  (and (pair? exp) (eq? (car exp) 'amb-orig)))
-
-(define (amb-alternatives exp) (cdr exp))
-
-(define (analyze-amb exp)
-  (let ((aprocs (map analyze (amb-alternatives exp))))
-    (lambda (succeed)
-      (let loop ((alts aprocs))
-        (if (null? alts)
-            (fail)
-	    (begin
-	      (add-branch (lambda () (loop (cdr alts))))
-	      ((car alts) succeed)))))))
-
-(defhandler analyze analyze-amb amb?)
-
 ;;; ambc is called with a continuation that is passed success and
 ;;; failure continuations which it calls at its discretion:
 ;;;   (ambc (lambda (succeed fail) ...))
