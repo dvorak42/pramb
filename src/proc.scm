@@ -1,13 +1,9 @@
 (declare (usual-integrations))
 
-(define the-unspecified-value (list 'the-unspecified-value))
-
-
 ;;; Primitive procedures are inherited from Scheme.
 
 (define strict-primitive-procedure? procedure?)
 (define apply-primitive-procedure apply)
-
 
 ;;; Compound procedures
 
