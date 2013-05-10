@@ -1,7 +1,40 @@
 ;;;; Analyzing interpreter with AMB support (in amb.scm).
 ;;;   Execution procedures take a SUCCEED continuation.
 
-(define *env*)
+(define *env-stack*)
+(define (push-env! env)
+  (set! *env-stack* (cons env *env-stack*)))
+(define (pop-env!)
+  (let ((env (car *env-stack*)))
+    (set! *env-stack* (cdr *env-stack*))
+    env))
+(define (env) (car *env-stack*))
+
+(define *proc-envs*)
+(define (add-proc-env proc)
+  (set! *proc-envs*
+	(cons (cons proc (env))
+	      *proc-envs*)))
+(define (get-proc-env proc)
+  (cdr (assv proc *proc-envs*)))
+
+(define (grab-environment-state)
+  (define copied-frames (list (cons the-empty-environment the-empty-environment)))  ; this is an alist
+  (define (copy-frame env)
+    (if (not (assv env copied-frames))
+	(set! copied-frames
+	      (cons (cons env (extend-environment (list-copy (environment-variables env))
+						  (list-copy (environment-values env))
+						  (copy-frame (environment-parent env))))
+		    copied-frames)))
+    (cdr (assv env copied-frames)))
+  (cons (map copy-frame *env-stack*)
+	(map (lambda (pair) (cons (car pair) (copy-frame (cdr pair)))) *proc-envs*)))
+
+(define (restore-environment-state state)
+  (set! *env-stack* (car state))
+  (set! *proc-envs* (cdr state)))
+
 
 (define analyze
   (make-generic-operator 1 'analyze
@@ -23,7 +56,7 @@
 
 
 (define (analyze-variable exp)
-  (lambda (succeed) (succeed (lookup-variable-value exp *env*))))
+  (lambda (succeed) (succeed (lookup-variable-value exp (env)))))
 
 (defhandler analyze analyze-variable variable?)
 
@@ -32,7 +65,9 @@
   (let ((vars (lambda-parameters exp))
         (bproc (analyze (lambda-body exp))))
     (lambda (succeed)
-      (succeed (make-compound-procedure vars bproc *env*)))))
+      (let ((proc (make-compound-procedure vars bproc)))
+	(add-proc-env proc)
+	(succeed proc)))))
 
 (defhandler analyze analyze-lambda lambda?)
 
@@ -105,14 +140,13 @@
 (defhandler execute-application
   (lambda (proc args succeed)
     (let ((func (if (list? (procedure-parameters proc)) identity list)))
-      (let ((old-env *env*))
-	(set! *env* (extend-environment (func (procedure-parameters proc))
-					(func args)
-					(procedure-environment proc)))
-    	((procedure-body proc)
-	 (lambda (val)
-	   (set! *env* old-env)
-	   (succeed val))))))
+      (push-env! (extend-environment (func (procedure-parameters proc))
+				     (func args)
+				     (get-proc-env proc)))
+      ((procedure-body proc)
+       (lambda (val)
+	 (pop-env!)
+	 (succeed val)))))
   compound-procedure?)
 
 
@@ -121,7 +155,7 @@
         (vproc (analyze (assignment-value exp))))
     (lambda (succeed)
       (vproc (lambda (val)
-               (set-variable-value! var val *env*)
+               (set-variable-value! var val (env))
                (succeed 'OK))))))
 
 (defhandler analyze
@@ -134,7 +168,7 @@
         (vproc (analyze (definition-value exp))))
     (lambda (succeed)
       (vproc (lambda (val)
-	       (define-variable! var val *env*)
+	       (define-variable! var val (env))
                (succeed val))))))
 
 (defhandler analyze analyze-definition definition?)

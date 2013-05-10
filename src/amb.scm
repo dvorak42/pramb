@@ -2,12 +2,12 @@
 (define *global-fail*)  ; this is set in driver-loop in repl.scm
 
 (define (add-branch cont)
-  (enqueue! *fail-queue* (cons cont (copy-environment *env*))))
+  (enqueue! *fail-queue* (cons cont (grab-environment-state))))
 (define (fail)
   (if (queue-empty? *fail-queue*)
       (*global-fail*)
       (let ((pair (dequeue! *fail-queue*)))
-	(set! *env* (cdr pair))
+	(restore-environment-state (cdr pair))
 	((car pair)))))
 
 ;;; amb iterates through a list of alternatives (in order), then fails

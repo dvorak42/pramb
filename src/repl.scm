@@ -40,7 +40,10 @@
 (define output-prompt "\n;;; Amb-Eval value:\n")
 
 (define (init)
-  (set! *env* (extend-environment '() '() the-empty-environment))
+  (set! *env-stack*
+	(list (extend-environment
+	       '() '() the-empty-environment)))
+  (set! *proc-envs* '())
   (driver-loop))
 
 (define (driver-loop)

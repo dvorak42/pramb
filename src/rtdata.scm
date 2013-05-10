@@ -18,8 +18,8 @@
 
 ;;; Compound procedures
 
-(define (make-compound-procedure vars bproc env)
-  (vector 'compound-procedure vars bproc env))
+(define (make-compound-procedure vars bproc)
+  (vector 'compound-procedure vars bproc))
 
 (define (compound-procedure? obj)
   (and (vector? obj)
@@ -27,7 +27,6 @@
 
 (define (procedure-parameters p) (vector-ref p 1))
 (define (procedure-body p) (vector-ref p 2))
-(define (procedure-environment p) (vector-ref p 3))
 
 ;;; An ENVIRONMENT is a chain of FRAMES, made of vectors.
 
