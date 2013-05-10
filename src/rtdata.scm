@@ -2,11 +2,6 @@
 
 (define the-unspecified-value (list 'the-unspecified-value))
 
-(define (true? x)
-  (if x true false))
-
-(define (false? x)
-  (if x false true))
 
 ;;; Primitive procedures are inherited from Scheme.
 

@@ -42,7 +42,7 @@
         (aproc (analyze (if-alternative exp))))
     (lambda (succeed)
       (pproc (lambda (pred-value)
-               (if (true? pred-value)
+               (if pred-value
                    (cproc succeed)
                    (aproc succeed)))))))
 
