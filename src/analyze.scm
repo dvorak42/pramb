@@ -19,17 +19,21 @@
   (cdr (assv proc *proc-envs*)))
 
 (define (grab-environment-state)
-  (define copied-frames (list (cons the-empty-environment the-empty-environment)))  ; this is an alist
+  (define copied-frames (list (cons the-empty-environment
+				    the-empty-environment)))
   (define (copy-frame env)
     (if (not (assv env copied-frames))
 	(set! copied-frames
-	      (cons (cons env (extend-environment (list-copy (environment-variables env))
-						  (list-copy (environment-values env))
-						  (copy-frame (environment-parent env))))
+	      (cons (cons env (extend-environment
+			       (list-copy (environment-variables env))
+			       (list-copy (environment-values env))
+			       (copy-frame (environment-parent env))))
 		    copied-frames)))
     (cdr (assv env copied-frames)))
   (cons (map copy-frame *env-stack*)
-	(map (lambda (pair) (cons (car pair) (copy-frame (cdr pair)))) *proc-envs*)))
+	(map (lambda (pair)
+	       (cons (car pair) (copy-frame (cdr pair))))
+	     *proc-envs*)))
 
 (define (restore-environment-state state)
   (set! *env-stack* (car state))
