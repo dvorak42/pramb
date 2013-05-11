@@ -30,8 +30,6 @@
   (compose pp procedure-printable-representation)
   compound-procedure?)
 
-(define (reader) (prompt-for-command-expression "eval> "))
-
 
 ;;; Initialization and driver loop
 
