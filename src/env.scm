@@ -30,6 +30,12 @@
 
 (define the-empty-environment '())
 
+(define (reset-environment-state)
+  (set! *env-stack*
+	(list (extend-environment
+	       '() '() the-empty-environment)))
+  (set! *proc-envs* '()))
+
 (define (grab-environment-state)
   (define copied-frames (list (cons the-empty-environment
 				    the-empty-environment)))
