@@ -40,32 +40,33 @@
 (define (init . files)
   (reset-environment-state)
   (map (lambda (file)
-	 (call-with-input-file file driver-loop))
+         (call-with-input-file file driver-loop))
        files)
   (driver-loop))
 
 (define (driver-loop #!optional port)
-  (let ((input 
-	 (if (default-object? port)
-	     (prompt-for-command-expression input-prompt)
-	     (let ((file-line (read port)))
-	       (display input-prompt)
-	       (pp file-line)
-	       file-line))))
+  (let ((input
+         (if (default-object? port)
+             (prompt-for-command-expression input-prompt)
+             (let ((file-line (read port)))
+               (display input-prompt)
+               (pp file-line)
+               file-line))))
     (if (not (eof-object? input))
-	(begin
-	  (if (eq? input 'try-again) (fail))  ; fail is defined in amb.scm
-	  (newline)
-	  (display ";;; Starting a new problem ")
-	  (set! *fail-queue* (make-queue))
-	  (set! *global-fail*
-		(lambda ()
-		  (newline)
-		  (display ";;; There are no more values of ")
-		  (pp input)
-		  (driver-loop port)))
-	  ((analyze input)
-	   (lambda (val)
-	     (display output-prompt)
-	     (pp val)
-	     (driver-loop port)))))))
+        (begin
+          (if (eq? input 'try-again) (fail))  ; fail is defined in amb.scm
+          (newline)
+          (display ";;; Starting a new problem ")
+          (set! *fail-queue* (make-queue))
+          (set! *global-fail*
+                (lambda ()
+                  (newline)
+                  (display ";;; There are no more values of ")
+                  (pp input)
+                  (driver-loop port)))
+          ((analyze input)
+           (lambda (val)
+             (display output-prompt)
+             (pp val)
+             (driver-loop port)))))))
+
