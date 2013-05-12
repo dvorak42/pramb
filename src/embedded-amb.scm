@@ -17,7 +17,7 @@
 (define (amb-range low high)
   (ambc
    (lambda (succeed fail)
-     (succeed (+ low (random (exact->inexact (- high low))))))))
+     (succeed (rand-float low high)))))
 
 (define (require p)
   (if (not p) (fail)))
