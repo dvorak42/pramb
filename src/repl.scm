@@ -60,6 +60,7 @@
 	  (set! *fail-queue* (make-queue))
 	  (set! *global-fail*
 		(lambda ()
+		  (newline)
 		  (display ";;; There are no more values of ")
 		  (pp input)
 		  (driver-loop port)))

@@ -18,7 +18,7 @@
 \titlepage
 
 \begin{frame}[fragile]{Motivation}
-  Can we use \texttt{amb} to factor the number 22?
+ Let's use \texttt{amb} to factor the number 22.
 
 \begin{lstlisting}
 (define (amb-count-up n)
@@ -47,8 +47,79 @@ It doesn't work\ldots why?
 \begin{frame}[fragile]{Plan}
   \begin{itemize}
   \item Use embedded interpreter from problem set 4
+    \pause
   \item Implement backtracking by breadth-first search
+    \pause
+  \item Maintain call-by-value evaluation strategy
+    \pause
+  \item Replace \texttt{amb} with \texttt{ambc} (``\texttt{amb}-continuation'')
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{ambc} semantics}
+\begin{lstlisting}
+(ambc
+  (lambda (succeed fail)
+    (succeed 22)))
+\end{lstlisting}
+evaluates to 22 forever.
+
+\vfill
+
+\begin{lstlisting}
+(ambc
+  (lambda (succeed fail)
+    (fail)))
+\end{lstlisting}
+fails immediately.
+\end{frame}
+
+\begin{frame}[fragile]{Maintaining state}
+  The environment of the continuation passed to \texttt{ambc} is not
+  reset during backtracking.
+  \begin{lstlisting}
+(define (succeed-once val)
+  (define flag #t)
+  (ambc
+   (lambda (succeed fail)
+     (if flag
+         (begin
+           (set! flag #f)
+           (succeed val))
+         (fail)))))
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Useful \texttt{ambc} examples}
+  \begin{lstlisting}
+(define (amb . alts)
+  (ambc
+   (lambda (succeed fail)
+     (if (null? alts)
+         (fail)
+         (let ((result (car alts)))
+           (set! alts (cdr alts))
+           (succeed result))))))
+  \end{lstlisting}
+\pause
+  \begin{lstlisting}
+(define (amb-range low high)
+  (ambc
+   (lambda (succeed fail)
+     (succeed (random-num low high))))
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}{Implementation}
+  
+\end{frame}
+
+\begin{frame}{Examples}
+  
+\end{frame}
+
+\begin{frame}{Ongoing work}
+  
 \end{frame}
 
 \end{document}
