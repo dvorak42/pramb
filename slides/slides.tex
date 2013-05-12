@@ -110,8 +110,54 @@ fails immediately.
   \end{lstlisting}
 \end{frame}
 
-\begin{frame}{Implementation}
-  
+\begin{frame}{Interpreter implementation}
+a
+\end{frame}
+
+\begin{frame}[fragile]{Environments}
+  Store all environments in a central data structure which supports
+  the following operations:
+  \begin{itemize}
+  \item \texttt{reset-env-state}
+  \item \texttt{grab-env-state}
+  \item \texttt{restore-env-state}
+  \end{itemize}
+  (as well as all of the interfaces required by the interpreter).
+\end{frame}
+
+\begin{frame}[fragile]{Failure queue}
+  \begin{lstlisting}
+(define fail-queue)
+(define global-fail)
+
+(define (add-branch cont)
+  (enqueue! fail-queue
+    (cons cont (grab-env-state))))
+(define (fail)
+  (if (queue-empty? fail-queue)
+      (global-fail)
+      (let ((p (dequeue! fail-queue)))
+        (restore-env-state (cdr p))
+        ((car p)))))
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{\texttt{ambc}}
+  \begin{lstlisting}
+(define (analyze-ambc exp)
+  (let ((fproc (analyze (cadr exp))))
+    (lambda (succeed)
+      (fproc
+       (lambda (proc)
+         (let loop ()     
+           (execute-application proc
+            (list (lambda (r)
+                    (pop-env!)
+                    (add-branch loop)
+                    (succeed r))
+                  fail)
+            'dummy-succeed)))))))
+  \end{lstlisting}
 \end{frame}
 
 \begin{frame}{Examples}
