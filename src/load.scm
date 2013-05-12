@@ -9,6 +9,7 @@
 
 (load "analyze" generic-evaluation-environment)
 (load "ambc" generic-evaluation-environment)
+(load "prob" generic-evaluation-environment)
 (load "repl" generic-evaluation-environment)
 
 (ge generic-evaluation-environment)
