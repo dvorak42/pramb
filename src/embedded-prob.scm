@@ -29,4 +29,4 @@
     (p:display-values v1 v1 (p:value samples (lambda (s f) (p1 (lambda (v) (s v)) '()))))))
 
 (define (p:display p1)
-  (p:disp p1 1000))
+  (p:display-samples p1 1000))

@@ -2,7 +2,7 @@
 (define (p:value? exp)
   (and (pair? exp) (eq? (car exp) 'p:value)))
 
-(define (p:get-value prob) (prob (lambda (v) v) 2))
+(define (p:get-value prob) (prob (lambda (v) v) '()))
 
 (define (analyze-p-value exp)
   (let ((maxdepth (analyze (cadr exp)))
