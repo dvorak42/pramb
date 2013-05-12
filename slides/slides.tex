@@ -44,7 +44,7 @@ It doesn't work\ldots why?
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Plan}
+\begin{frame}[fragile]{Our plan}
   \begin{itemize}
   \item Use embedded interpreter from problem set 4
     \pause
@@ -115,14 +115,20 @@ a
 \end{frame}
 
 \begin{frame}[fragile]{Environments}
-  Store all environments in a central data structure which supports
-  the following operations:
+  We store all environments in a central data structure which supports
+  operations for backtracking:
   \begin{itemize}
   \item \texttt{reset-env-state}
   \item \texttt{grab-env-state}
   \item \texttt{restore-env-state}
   \end{itemize}
-  (as well as all of the interfaces required by the interpreter).
+  as well as the interfaces required by the evaluator:
+  \begin{itemize}
+    \item \texttt{current-env}, \texttt{push-env!}, \texttt{pop-env!}
+    \item \texttt{get-proc-env}, \texttt{set-proc-env!}.
+  \end{itemize}
+  \vfill Efficient implementation of the environment component is the
+  focus of ongoing development work.
 \end{frame}
 
 \begin{frame}[fragile]{Failure queue}
