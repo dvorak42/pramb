@@ -9,10 +9,10 @@
   (ambc
    (lambda (succeed fail)
      (if (null? options)
-	 (fail)
-	 (let ((result (car options)))
-	   (set! options (cdr options))
-	   (succeed result))))))
+         (fail)
+         (let ((result (car options)))
+           (set! options (cdr options))
+           (succeed result))))))
 
 (define (amb-range low high)
   (ambc
@@ -21,8 +21,8 @@
 
 (define (amb-unit-sphere)
   (let ((x (amb-range -1 1))
-	(y (amb-range -1 1))
-	(z (amb-range -1 1)))
-    (if (> (+ (square x) (square y) (square z)) 1) (fail))
-    (list x y z)))
-
+        (y (amb-range -1 1))
+        (z (amb-range -1 1)))
+    (if (> (+ (square x) (square y) (square z)) 1)
+        (fail)
+        (list x y z))))
