@@ -94,6 +94,8 @@
 
 (define (if-consequent exp) (caddr exp))
 
+(define the-unspecified-value (list 'the-unspecified-value))
+
 (define (if-alternative exp)
   (if (not (null? (cdddr exp)))
       (cadddr exp)

@@ -19,10 +19,12 @@
    (lambda (succeed fail)
      (succeed (+ low (random (exact->inexact (- high low))))))))
 
+(define (require p)
+  (if (not p) (fail)))
+
 (define (amb-unit-sphere)
   (let ((x (amb-range -1 1))
         (y (amb-range -1 1))
         (z (amb-range -1 1)))
-    (if (> (+ (square x) (square y) (square z)) 1)
-        (fail)
-        (list x y z))))
+    (require (<= (+ (square x) (square y) (square z)) 1))
+    (list x y z)))
