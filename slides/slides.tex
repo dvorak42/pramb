@@ -110,8 +110,22 @@ fails immediately.
   \end{lstlisting}
 \end{frame}
 
-\begin{frame}{Interpreter implementation}
-a
+\begin{frame}[fragile]{Interpreter implementation}
+  Based on the analyzing interpreter from problem set 4. \pause
+  \begin{itemize}
+  \item We pass around success continuations instead of returning the
+    result. \pause
+  \item We do not pass around failure continuations, instead storing
+    them in a global queue. \pause
+  \item We never explicitly pass around environments. \pause
+  \end{itemize}
+  \begin{lstlisting}
+(define (analyze exp)
+  (let (...)  ; compilation
+    (lambda (succeed)
+       ; evaluate exp
+       (succeed value))))
+  \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]{Environments}
@@ -121,20 +135,37 @@ a
   \item \texttt{reset-env-state}
   \item \texttt{grab-env-state}
   \item \texttt{restore-env-state}
-  \end{itemize}
+  \end{itemize} \pause
   as well as the interfaces required by the evaluator:
   \begin{itemize}
     \item \texttt{current-env}, \texttt{push-env!}, \texttt{pop-env!}
     \item \texttt{get-proc-env}, \texttt{set-proc-env!}.
-  \end{itemize}
-  \vfill Efficient implementation of the environment component is the
+  \end{itemize} \pause
+  \vfill Efficient implementation of the environment data structure is the
   focus of ongoing development work.
+\end{frame}
+
+\begin{frame}[fragile]{Using environments}
+  \begin{lstlisting}
+(defhandler execute-application
+  (lambda (proc args succeed)
+    (push-env! 
+     (extend-environment
+      (procedure-parameters proc)
+      args
+      (get-proc-env proc)))
+    ((procedure-body proc)
+     (lambda (val)
+       (pop-env!)
+       (succeed val))))
+  compound-procedure?)
+  \end{lstlisting}
 \end{frame}
 
 \begin{frame}[fragile]{Failure queue}
   \begin{lstlisting}
-(define fail-queue)
-(define global-fail)
+(define fail-queue)   ; initialized
+(define global-fail)  ; by the repl
 
 (define (add-branch cont)
   (enqueue! fail-queue
