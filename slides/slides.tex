@@ -2,6 +2,10 @@
 \mode<presentation>{\usetheme{Boadilla}}
 \usepackage[english]{babel}
 \usepackage{listings}
+\lstset{
+  language=Lisp,
+  basicstyle=\ttfamily,
+  showstringspaces=false}
 \setbeamertemplate{navigation symbols}{}
 
 \title{\texttt{ambc}: the most general \texttt{amb}}
@@ -13,8 +17,38 @@
 
 \titlepage
 
-\begin{frame}{Motivation}
-  todo
+\begin{frame}[fragile]{Motivation}
+  Can we use \texttt{amb} to factor the number 22?
+
+\begin{lstlisting}
+(define (amb-count-up n)
+  (amb n (amb-count-up (+ n 1))))
+\end{lstlisting}
+\begin{lstlisting}
+(let ((a (amb-count-up 1))
+      (b (amb-count-up 1)))
+   (if (not (= (* a b) 22)) (amb))
+   (list a b))
+\end{lstlisting}
+
+\pause
+
+It doesn't work\ldots why?
+
+\pause
+
+  \begin{itemize}
+  \item Call-by-value evaluation strategy
+    \pause
+  \item Backtracking by depth-first search
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Plan}
+  \begin{itemize}
+  \item Use embedded interpreter from problem set 4
+  \item Implement backtracking by breadth-first search
+  \end{itemize}
 \end{frame}
 
 \end{document}
