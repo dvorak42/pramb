@@ -21,9 +21,11 @@
   (lambda (s f) (s (random 1.0))))
 
 (define (p:pseudonormal d)
-  (if (= d 0)
-		(p:scale (p:sum (p:shift p:uniform -0.5) (p:shift p:uniform -0.5)) 0.5)
-    (p:scale (p:sum (p:pseudonormal (- d 1)) (p:pseudonormal (- d 1))) 0.5)))
+  (let ((distr
+          (if (= d 0)
+              (p:scale (p:shift p:uniform -0.5) (sqrt 12))
+              (p:pseudonormal (- d 1)))))
+    (p:scale (p:sum distr distr) (/ 1 (sqrt 2)))))
 
 (define p:normal
   (p:pseudonormal 2))
