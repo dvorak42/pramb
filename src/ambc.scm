@@ -23,11 +23,12 @@
   (let ((fproc (analyze (cadr exp))))
     (lambda (succeed)
       (fproc (lambda (proc)
-	       (let loop ()	
+	       (let loop ()
+		 (define stack (grab-env-stack))
 		 (execute-application
 		  proc
 		  (list (lambda (r)
-			  (pop-env!)
+			  (set-env-stack! stack)
 			  (add-branch loop)
 			  (succeed r))
 			fail)

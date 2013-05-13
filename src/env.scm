@@ -8,6 +8,8 @@
     (set! *env-stack* (cdr *env-stack*))
     env))
 (define (peek-env) (car *env-stack*))
+(define (grab-env-stack) *env-stack*)
+(define (set-env-stack! stack) (set! *env-stack* stack))
 
 (define *proc-envs*)
 (define (add-proc-env proc)
