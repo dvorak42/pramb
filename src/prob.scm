@@ -1,4 +1,11 @@
 ;;; (p:value NUM_SAMPLES PROBOBJ) -> List of NUM_SAMPLES samples.
+(define (p:value n exp)
+	(let lp ((depth n)
+					 (value '()))
+		(if (> depth 0)
+				(lp (- depth 1) (cons (exp (lambda (v) v) '()) value))
+				value)))
+
 (define (p:value? exp)
   (and (pair? exp) (eq? (car exp) 'p:value)))
 
