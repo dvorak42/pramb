@@ -19,6 +19,15 @@
    (lambda (succeed fail)
      (succeed (rand-float low high)))))
 
+(define (amb-ranges n low high)
+  (define (make-floats k)
+    (if (= k 0)
+        '()
+        (cons (rand-float low high) (make-floats (- k 1)))))
+  (ambc
+    (lambda (succeed fail)
+      (succeed (make-floats n)))))
+
 (define (require p)
   (if (not p) (fail)))
 

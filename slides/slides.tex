@@ -149,7 +149,7 @@ fails immediately.
   \begin{lstlisting}
 (defhandler execute-application
   (lambda (proc args succeed)
-    (push-env! 
+    (push-env!
      (extend-environment
       (procedure-parameters proc)
       args
@@ -186,7 +186,7 @@ fails immediately.
     (lambda (succeed)
       (fproc
        (lambda (proc)
-         (let loop ()     
+         (let loop ()
            (execute-application proc
             (list (lambda (r)
                     (pop-env!)
@@ -230,9 +230,12 @@ fails immediately.
 \begin{frame}{Ongoing work}
   \begin{itemize}
   \item Efficient implementation of the environment component
+    (copy-on-write, weak references) 
   \item Tracking down bugs (this stuff is hard!)
+  \item More integration of probability objects
   \end{itemize}
   \vfill
   Any questions?
 \end{frame}
+
 \end{document}
