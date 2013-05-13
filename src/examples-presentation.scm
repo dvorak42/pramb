@@ -23,6 +23,15 @@
 
 (compute-variance p:normal 1000)
 
+;;; (init "embedded-prob.scm" "embedded-amb.scm")
+
+; generated distributions
+(define (px s f) 
+		(let ((p (ambc p:normal))) 
+			(require (> p 0.125))
+			(s p)))
+(p:display-samples px 8)
+
 ;;; (init "embedded-amb.scm")
 
 ; multiple-dwellings
