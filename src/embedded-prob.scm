@@ -8,6 +8,10 @@
   (lambda (succeed fail)
     (p1 (lambda (v1) (succeed (* v1 c))) fail)))
 
+(define (p:shift p1 c)
+  (lambda (succeed fail)
+    (p1 (lambda (v1) (succeed (+ v1 c))) fail)))
+
 (define (p:mult p1 p2)
   (lambda (succeed fail)
     (p1 (lambda (v1)
@@ -18,7 +22,7 @@
 
 (define (p:pseudonormal d)
   (if (= d 0)
-    (p:scale (p:sum p:uniform p:uniform) 0.5)
+		(p:scale (p:sum (p:shift p:uniform -0.5) (p:shift p:uniform -0.5)) 0.5)
     (p:scale (p:sum (p:pseudonormal (- d 1)) (p:pseudonormal (- d 1))) 0.5)))
 
 (define p:normal
