@@ -1,6 +1,10 @@
 \documentclass{article}
 
-\usepackage{url}
+\usepackage{url,listings}
+\lstset{
+  language=Lisp,
+  basicstyle=\ttfamily,
+  showstringspaces=false}
 
 \title{\texttt{ambc}: the most general \texttt{amb}}
 \author{Jacob Hurwitz \and David Lawrence \and Steven Valdez}
@@ -18,7 +22,10 @@
 The \texttt{amb} function offers great adaptability by providing a
 clean mechanism for programs to make choices by implicit backtracking.
 We aimed to extend \texttt{amb} so that it might also represent
-decisions over an undetermined or possibly infinite space of choices.
+decisions over an undetermined or possibly infinite space of
+alternatives.
+
+We elected to 
 
 \section{Implementation of \texttt{ambc}}
 
