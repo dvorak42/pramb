@@ -20,12 +20,53 @@
 \section{Introduction and motivation}
 
 The \texttt{amb} function offers great adaptability by providing a
-clean mechanism for programs to make choices by implicit backtracking.
-We aimed to extend \texttt{amb} so that it might also represent
-decisions over an undetermined or possibly infinite space of
-alternatives.
+clean mechanism for programs to make discrete choices by implicit
+backtracking.  We aimed to extend \texttt{amb} so that it might also
+represent decisions over an undetermined or possibly infinite space of
+alternatives.  Our thinking was motivated by a desire to use
+\texttt{amb} to manipulate random variables with particular
+probability distributions.
 
-We elected to 
+We elected to implement a new interface called
+``\texttt{amb}-continuation'', or \texttt{ambc}.  Rather then being
+called with a list of alternatives, \texttt{ambc} would be called with
+a function that produced new alternatives on-demand.  That function
+would itself be passed success and failure continuations, which it
+could then call to indicate succees (with a particular value) or
+failure as appropriate.
+
+\begin{lstlisting}
+;;; Evaluates to 22 forever
+(ambc
+  (lambda (succeed fail)
+    (succeed 22)))
+
+;;; Fails immediately
+(ambc
+  (lambda (succeed fail)
+    (fail)))
+\end{lstlisting}
+
+For \texttt{ambc} to do anything useful, it needs some way to maintain
+state between invocations.  Accordingly, we arranged that the
+procedure environment for \texttt{ambc}'s argument would not be reset
+between alternatives.  Then we could easily define the traditional
+\texttt{amb} in terms of \texttt{ambc}:
+
+\begin{lstlisting}
+(define (amb . alts)
+  (ambc
+   (lambda (succeed fail)
+     (if (null? alts)
+         (fail)
+         (let ((result (car alts)))
+           (set! alts (cdr alts))
+           (succeed result))))))
+\end{lstlisting}
+
+In the remaining sections, we will discuss the implementation of
+\texttt{ambc} and its utility as a mechanism for representing random
+variables.
 
 \section{Implementation of \texttt{ambc}}
 
