@@ -32,8 +32,41 @@ We elected to
 \section{\texttt{ambc} test cases}
 
 \section{Applications to probability}
+Once we implemented \texttt{ambc}, we were then able to apply it to probability
+distributions in order to begin selecting over the values of the probability
+distribution. In order to manipulate and deal with probability objects,
+\textit{probobjs}, we constructed methods to transform these objects and combine
+them together:
 
+\begin{itemize}
+  \item \textbf{p:sum}: Returns a probobj that is the sum of the input probobjs.
+  \item \textbf{p:mult}: Returns a probobj that is the product of the input probobjs.
+  \item \textbf{p:scale}: Returns a probobj that is the scaled form of the input.
+  \item \textbf{p:shift}: Returns a probobj that is a shifted version of the
+    input.
+\end{itemize}
+
+Once we had established a set of operations to perform on the probobjs, we are
+then able to generate more complex probability distributions from the initial
+uniform probability distribution. In order to help ensure the probability
+distributions are correct, and to visualize the output of the probobjs, we also
+implemented a ``p:display'' function that would generate a visual representation
+of the probobj by taking many samples which are then placed into bins across the
+distribution.
+
+In addition to the methods that we created to manipulate probobjs, we are also
+able to use our \texttt{ambc} construction to generate probobjs deriving from
+the input one. For example, we can generate the part of the normal distribution
+above $0.25$ by using:\\
+
+\begin{lstlisting}
+(define (px s f) 
+  (let ((p (ambc p:normal))) 
+    (require (> p 0.25))
+    (s p)))
+\end{lstlisting}
+
+TODO ABOUT MONTE-CARLO STUFF.
 \section{Directions for future work}
-
 
 \end{document}

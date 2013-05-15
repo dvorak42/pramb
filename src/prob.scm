@@ -35,6 +35,7 @@
 (define nprec 24)
 (define nstr 200)
 
+;;; Method to place the values into bins and then draw the values out.
 (define (p:binify minp maxp values)
   (define (p:binify-helper minp maxp bins vs ndep)
     (if (= minp maxp)
@@ -49,22 +50,26 @@
           (p:binify-helper minp maxp new-bins (cdr vs) ndep))))) 
   (p:binify-helper minp maxp (make-vector nbins) values (length values)))
 
+;;; Convert a number into a rounded string representation
 (define (d-numerify v)
   (let ((vs (write-to-string (exact->inexact (/ (round (* v 100)) 100)))))
     (if (eq? (string-ref vs (- (string-length vs) 1)) '#\.)
       (string-append vs "0")
       vs)))
 
+;;; Displays the header of a line with the correct amount of padding.
 (define (p:displayheader v)
   (let ((l (- nprec (string-length v))))
     (let ((vsl (substring v 0 (min nprec (string-length v)))))
       (if (> l 0) (display (make-string l '#\ )))
       (display vsl))))
 
+;;; Produces a number of stars, dependent on the value.
 (define (p:starify v ndep step)
   (if (> v 0) (display "*") 'eol)
   (if (> v step) (p:starify (- v step) ndep step) 'eol))
 
+;;; Method that draws lines representing each bin in the prob distribution.
 (define (p:draw-prob minp step values ndep)
   (if (= (vector-length values) 0) (newline)
     (begin
@@ -75,7 +80,7 @@
       (newline)
       (p:draw-prob (+ minp step) step (vector-tail values 1) ndep))))
 
-
+;;; Transforms a list of prob values into a graphic display of the distribution.
 (define (p:display-values minp maxp values)
   (define (find-lp minp maxp values next)
     (if (= (length next) 0)
