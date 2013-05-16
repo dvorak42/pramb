@@ -363,6 +363,22 @@ from the part of the normal distribution above $x$ by using:
       (succeed p))))
 \end{lstlisting}
 
+Through the use of these objects, we are then easily able to implement
+procedures on probability distributions using \texttt{ambc} to select across
+them. While this form of {probobj} proves to be simple to use, while still
+allowing complexity in the distributions that can be represented, there are
+alternative methods to represent {probobj}s that have other useful
+functionality. Some examples of alternative implementations include:
+
+\begin{itemize}
+  \item Probability Lists: Each probability object is represented by a list of
+    values, generated to match the needed probability distribution.
+  \item Parameterized Distributions: Each probability object is represented by a
+    set of parameters to a generalized distribution that can generate the values
+    for the distribution on constant time, rather than combining multiple
+    probability distributions to generate the expected distribution.
+\end{itemize} 
+
 \section{Directions for future work}
 
 \appendix
