@@ -19,19 +19,18 @@
 
 \section{Introduction and motivation}
 
-The \texttt{amb} function provides a clean mechanism for programs to
-make discrete choices by implicit backtracking.  We aimed to extend
-\texttt{amb} so that it might also represent decisions over an
-undetermined or possibly infinite space of alternatives.  We were
-motivated by a desire to use \texttt{amb} to manipulate random
-variables that might have particular probability distributions.
+The \texttt{amb} function provides a clean mechanism for programs to make
+discrete choices by implicit backtracking.  We aimed to extend \texttt{amb} so
+that it might also represent decisions over an undetermined or possibly
+infinite space of alternatives.  We were motivated by a desire to use
+\texttt{amb} to manipulate random variables that might have particular
+probability distributions.
 
-We elected to implement a new interface called
-``\texttt{amb}-continuation'', or \texttt{ambc}.  Rather then being
-called with a list of alternatives, \texttt{ambc} would be called with
-a function that produced new alternatives on-demand.  That function
-would itself be passed success and failure continuations, which it
-could then call to indicate succees (with a particular value) or
+We elected to implement a new interface called ``\texttt{amb}-continuation,''
+or \texttt{ambc}.  Whereas \texttt{amb}'s argument is a list of alternatives,
+\texttt{ambc}'s argument is a function that produces a new alternative
+on-demand each time it's called. This function is passed success and failure
+continuations so that it can indicate success (with a particular value) or
 failure as appropriate.
 
 \begin{lstlisting}
@@ -46,11 +45,10 @@ failure as appropriate.
     (fail)))
 \end{lstlisting}
 
-For \texttt{ambc} to do anything useful, it needed some way to
-maintain state between invocations.  Accordingly, we arranged that the
-parent environment of \texttt{ambc}'s argument would not be reset
-between alternatives.  With that done, we could easily define
-traditional \texttt{amb} in terms of \texttt{ambc}:
+For \texttt{ambc} to be useful, it needs a way to maintain state between
+invocations.  Accordingly, we guarantee that the parent environment of
+\texttt{ambc}'s argument is not reset between successive calls.  With that
+done, we can easily define traditional \texttt{amb} in terms of \texttt{ambc}:
 \begin{lstlisting}
 (define (amb . alts)
   (ambc
@@ -61,13 +59,15 @@ traditional \texttt{amb} in terms of \texttt{ambc}:
            (set! alts (cdr alts))
            (succeed result))))))
 \end{lstlisting}
-We could also do new things, like selecting from a range of
-floating-point numbers:
+
+We can also implement non-determinism not possible using the normal
+\texttt{amb}, such as pseudorandomly selecting from a range of floating-point
+numbers:
 \begin{lstlisting}
 (define (amb-range low high)
   (ambc
    (lambda (succeed fail)
-     (succeed (random-float low high))))
+     (succeed (rand-float low high))))
 \end{lstlisting}
 
 In the remaining sections, we will discuss the implementation of
@@ -76,19 +76,207 @@ representing random variables in Scheme.
 
 \section{Implementation of \texttt{ambc}}
 
-We started with the analyzing Scheme interpreter from problem set 4.
-The failure continuations in this interpreter implicitly define a
-stack, resulting in the backtracking procedure executing via
-depth-first search.  However, depth-first search is not suitable when
-there are choices from infinite sets of alternatives: the search would
-spend forever on the first infinite option and never try a new
-alternative for any other ambiguous values.
+We started with the analyzing Scheme interpreter from problem set 4.  The
+failure continuations in this interpreter implicitly define a stack, resulting
+in the backtracking procedure executing via depth-first search.  However,
+depth-first search is not suitable when there are nested choices from infinite
+sets of alternatives. Consider the following code for finding Pythagorean
+triples:
+\begin{lstlisting}
+(define (a-pythagorean-triple-from low)
+  (let ((i (an-integer-starting-from low)))
+    (let ((j (an-integer-starting-from i)))
+      (let ((k (an-integer-starting-from j)))
+        (require (= (+ (* i i) (* j j)) (* k k)))
+        (list i j k)))))
+\end{lstlisting}
+A depth-first search would spend forever on the infinitely many options for $k$
+and would never try a new alternative for $i$ or $j$.
 
-In order to implement breadth-first search instead, we'll have to
-develop a solution that more explicitly allows storing and restoration
-of environment state.
+In order to explore the search space, we need to use a breadth-first search.
+However, this comes at the expense of simplicity. While a depth-first search
+examines each state immediately after its parent state, a breadth-first search
+does not, so it needs a way to explicitly allow storing and restoration of
+environment state.
 
 \section{\texttt{ambc} test cases}
+
+Let's return to the Pythagorean triple example from above. SICP defines
+\texttt{an-integer-starting-from} as follows:
+\begin{lstlisting}
+(define (an-integer-starting-from n)
+  (amb n (an-integer-starting-from (+ n 1))))
+\end{lstlisting}
+This does not work using our implementation of \texttt{amb}, since it evaluates
+all arguments, and therefore infinitely recurses before returning any values in
+this example. Instead, we provide a different implementation of
+\texttt{an-integer-from} by using \texttt{ambc} to maintain state:
+\begin{lstlisting}
+(define (an-integer-starting-from low)
+  (ambc
+    (lambda (succeed fail)
+      (let ((result low))
+        (set! low (+ low 1))
+        (succeed result)))))
+\end{lstlisting}
+
+One great use for \texttt{ambc} is sampling random points from a domain. For
+example, using the definition of \texttt{amb-range} given above, you could
+sample points from the unit circle as follows:
+\begin{lstlisting}
+(define (amb-unit-circle)
+  (let ((x (amb-range -1 1))
+        (y (amb-range -1 1)))
+    (require (<= (+ (square x) (square y)) 1))
+    (list x y)))
+\end{lstlisting}
+
+Unfortunately, this code is flawed and reveals another disadvantage of
+breadth-first search. Consider the following transcript:
+\begin{lstlisting}
+;;; Amb-Eval input:
+(amb-unit-circle)
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+(.8317830721369042 -.01663187759243523)
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(-.3333454788948702 -.28896585308416034)
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(.8317830721369042 -.3967400877386147)
+\end{lstlisting}
+
+The $x$-coordinates returned on the first and third calls are exactly the same!
+(As a reminder, the interpreter calls the failure continuation upon receiving
+\texttt{try-again} as input, meaning that it continues with the same
+breadth-first search.) The reason is breadth-first search scheduling. The first
+call to \texttt{amb-unit-circle} places its two children states on the queue:
+one in which the next $x$ possibility is examined (which implicitly also
+generates a new $y$), and one in which only the next $y$ possibility is
+examined. This is exactly what we want if both $x$ and $y$ have an explicit
+list of alternatives and we want to examine the space of all pairs of
+alternatives; however, when $x$ and $y$ are randomly generated, it seems like
+sometimes keeping the same $x$ value would yield a non-random distribution.
+
+To confirm our suspicions, we ran a chi-squared test. We divided the region
+$[-1,1]\times[-1,1]$ into 400 squares of equal area (each of size $0.1\times
+0.1$) and calculated the percent of the unit circle's area that lies in each of
+these 400 squares. We then generated 3000 points using
+\texttt{amb-unit-circle}, counted how many points fell into each of the 400
+squares, and ran a chi-squared test of this observed distribution of points
+against the expected (uniform random) distribution. The test yielded a
+$p$-value of less than 0.0001, indicating strong evidence that
+\texttt{amb-unit-circle} was not sampling points uniformly at random from the
+desired distribution.
+
+We came up with two possible workarounds for now. One is a function
+\texttt{amb-ranges} that takes a parameter $n$ and returns an $n$-tuple:
+\begin{lstlisting}
+(define (amb-ranges n low high)
+  (define (make-floats k)
+    (if (= k 0)
+        '()
+        (cons (rand-float low high)
+              (make-floats (- k 1)))))
+  (ambc
+    (lambda (succeed fail)
+      (succeed (make-floats n)))))
+
+(define (amb-unit-circle-ranges)
+  (let ((point (amb-ranges 2 -1 1)))
+    (require (<= (+ (square (car point))
+                    (square (cadr point))) 1))
+    point))
+\end{lstlisting}
+
+Another possible solution is to require the \texttt{ambc} for $y$ to fail on
+every other call. This ensures that it succeeds if called immediately after a
+new $x$ is generated, and otherwise fails (thus triggering the generation of a
+new $x$).
+\begin{lstlisting}
+(define (nested amb-exp)
+  (let ((flag #f))
+  (ambc
+    (lambda (succeed fail)
+      (set! flag (not flag))
+      (if flag
+        (amb-exp succeed fail)
+        (fail))))))
+
+(define (amb-range-nested low high)
+  (nested
+   (lambda (succeed fail)
+     (succeed (rand-float low high)))))
+
+(define (amb-unit-circle-nested)
+  (let ((x (amb-range -1 1))
+        (y (amb-range-nested -1 1)))
+    (require (<= (+ (square x) (square y)) 1))
+    (list x y)))
+\end{lstlisting}
+
+Both of these methods correctly sample from the desired distribution. (For
+instance, running the same chi-squared test on \texttt{amb-unit-circle-nested}
+yielded a $p$-value of 0.9888, indicating no reason to believe that the
+observed distribution was any different from the expected distribution.)
+However, both require essentially implementing two versions of
+\texttt{amb-range}: the first strategy duplicates \texttt{amb-range}'s
+definition of \texttt{amb-ranges}, and the second strategy duplicates it in
+\texttt{amb-range-nested}. One area we're still actively working on is finding
+a way to ensure uniform randomness in a generic way that does not require
+duplicating or re-writing any functionality.
+
+Given a way to sample points randomly from a domain, implementing Monte Carlo
+integration is simple. Given a function \texttt{func} that takes $d$-tuples and
+a function \texttt{rand} to randomly sample $d$-tuples from a domain, we can
+write Monte Carlo integration as follows:
+\begin{lstlisting}
+(define (monte-carlo-integrate func rand num area)
+  (define (sample sum n)
+    (if (>= n num)
+      (/ sum n)
+      (sample (+ sum (func (rand))) (+ n 1))))
+  (* area (sample 0 0)))
+\end{lstlisting}
+In this code, \texttt{num} is the number of points to sample, and \texttt{area}
+is the area/volume of the domain, which we need because the answer returned by
+Monte Carlo integration is the average value of the function at the sampled
+points multiplied by this area/volume.
+
+For example, we can run:
+\begin{lstlisting}
+(monte-carlo-integrate
+  (lambda (point)
+    (let ((x (car point))
+          (y (cadr point)))
+      (* (+ 1 x) (+ 2 y))))
+  amb-unit-circle-ranges
+  20
+  (acos -1)) ; (acos -1) equals pi
+
+;;; Amb-Eval input:
+(monte-carlo-integrate
+  (lambda (point)
+    (let ((x (car point))
+          (y (cadr point)))
+      (* (+ 1 x) (+ 2 y))))
+  amb-unit-circle-ranges
+  30
+  (acos -1))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+6.334461308333196
+\end{lstlisting}
+The exact result of the integral is $2\pi \approx 6.28$.
 
 \section{Applications to probability}
 Once we implemented \texttt{ambc}, we were then able to apply it to probability
@@ -98,34 +286,40 @@ distribution. In order to manipulate and deal with probability objects,
 them together:
 
 \begin{itemize}
-  \item \textbf{p:sum}: Returns a probobj that is the sum of the input probobjs.
-  \item \textbf{p:mult}: Returns a probobj that is the product of the input probobjs.
-  \item \textbf{p:scale}: Returns a probobj that is the scaled form of the input.
-  \item \textbf{p:shift}: Returns a probobj that is a shifted version of the
-    input.
+  \item \textbf{p:sum}: Returns a \textit{probobj} that is the sum of the input
+\textit{probobj}s.
+  \item \textbf{p:mult}: Returns a \textit{probobj} that is the product of the
+input \textit{probobj}s.
+  \item \textbf{p:scale}: Returns a \textit{probobj} that is the scaled form of
+the input.
+  \item \textbf{p:shift}: Returns a \textit{probobj} that is a shifted version
+of the input.
 \end{itemize}
 
-Once we had established a set of operations to perform on the probobjs, we are
-then able to generate more complex probability distributions from the initial
-uniform probability distribution. In order to help ensure the probability
-distributions are correct, and to visualize the output of the probobjs, we also
-implemented a ``p:display'' function that would generate a visual representation
-of the probobj by taking many samples which are then placed into bins across the
-distribution.
+Once we had established a set of operations to perform on the
+\textit{probobj}s, we are then able to generate more complex probability
+distributions from the initial uniform probability distribution. In order to
+help ensure the probability distributions are correct, and to visualize the
+output of the \textit{probobj}s, we also implemented a ``p:display'' function
+that would generate a visual representation of the \textit{probobj} by taking
+many samples which are then placed into bins across the distribution.
 
-In addition to the methods that we created to manipulate probobjs, we are also
-able to use our \texttt{ambc} construction to generate probobjs deriving from
-the input one. For example, we can generate the part of the normal distribution
-above $0.25$ by using:
+In addition to the methods that we created to manipulate \textit{probobj}s, we
+are also able to use our \texttt{ambc} construction to generate
+\textit{probobj}s deriving from the input one. For example, we can sample from
+the part of the normal distribution above $x$ by using:
 
 \begin{lstlisting}
-(define (px s f) 
-  (let ((p (ambc p:normal))) 
-    (require (> p 0.25))
-    (s p)))
+(define (p:normal>x x)
+  (lambda (succeed fail)
+    (let ((p (ambc p:normal)))
+      (require (> p x))
+      (succeed p))))
 \end{lstlisting}
 
 TODO ABOUT MONTE-CARLO STUFF.
+Why here? We didn't end up hooking our Monte Carlo code into the probobj code
+because the embedded interpreter was too slow for that.
 \section{Directions for future work}
 
 \end{document}
