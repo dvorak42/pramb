@@ -325,4 +325,25 @@ the part of the normal distribution above $x$ by using:
 
 \section{Directions for future work}
 
+\appendix
+
+\section{Running our code}
+
+Our code is available to view or download at
+\url{http://github.com/dvorak42/pramb}. To load our code, first run \texttt{(cd
+"src")} and then \texttt{(load "load")}. To start our custom interpreter,
+simply run \texttt{(init)}. This interpreter will have support for
+\texttt{ambc} but not for any constructs built on top of it, such as
+\texttt{amb} or \texttt{require}. These are defined by
+\texttt{embedded-amb.scm}, which you can load into the interpreter by running
+\texttt{(init "embedded-amb.scm")} instead of the init command above.
+
+Likewise, many of the probability functions are defined in
+\texttt{embedded-prob.scm}. You can instruct init to load multiple files into
+the interpreted environment, such as \texttt{(init "embedded-amb.scm"
+"embedded-prob.scm")}. Finally, if the interpreter ever quits due to an error,
+you can either re-init to return to an interpreter with a default environment,
+or run \texttt{(driver-loop)} to resume the interpreter in its former
+environment.
+
 \end{document}
