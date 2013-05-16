@@ -99,7 +99,36 @@ state, a breadth-first search hops back and forth between different
 branches of the computation.  Therefore a breadth-first search must
 explicitly allow the storage and restoration of all environment state.
 
-TODO write about envs
+\subsection{Environment store}
+
+The environment store is responsible for holding all environment
+state.  This state is divided into two parts: the environment stack,
+which keeps track of parent environments when multiple namespaces are
+nested (e.g. within a \texttt{let}), and the procedure-environments
+map, which stores the execution environment associated with each
+procedure.
+
+The environment stack is necessary for properly reverting state at the
+end of a function call. (Formerly, this structure was implicitly
+defined by analyzing procedures passing environments around.)  It
+exposes APIs to push an environment, pop an environment, peek at the
+top environment, save the a pointer to the current head, and restore
+a saved head pointer.  The stack is simply implemented as a list.
+
+The procedure-environments map is necessary so that procedures know in
+which environment they should be executed.  This informaton was
+formerly stored as an element of the compound-procedure object, but
+such a technique no longer works because we now need to swap out all
+of the procedure environments each time backtracking occurs.  This map
+is implemented as an alist mapping procedure objects to environments,
+which leads to the known issue that procedure objects cannot be
+garbage-collected. We could have fixed this issue by building the
+alist out of \texttt{weak-cons} cells, but keeping procedures around
+wasn't a major issue for our toy examples.
+
+TODO discuss global save-restore
+
+\subsection{The failure queue}
 
 TODO failure queue
 
