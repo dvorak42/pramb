@@ -80,8 +80,7 @@ We started with the analyzing Scheme interpreter from problem set 4.  The
 failure continuations in this interpreter implicitly define a stack, resulting
 in the backtracking procedure executing via depth-first search.  However,
 depth-first search is not suitable when there are nested choices from infinite
-sets of alternatives. Consider the following code for finding Pythagorean
-triples:
+sets of alternatives. Consider the following code (from the problem set):
 \begin{lstlisting}
 (define (a-pythagorean-triple-from low)
   (let ((i (an-integer-starting-from low)))
@@ -93,13 +92,18 @@ triples:
 A depth-first search would spend forever on the infinitely many options for $k$
 and would never try a new alternative for $i$ or $j$.
 
-In order to explore the search space, we need to use a breadth-first search.
-However, this comes at the expense of simplicity. While a depth-first search
-examines each state immediately after its parent state, a breadth-first search
-does not, so it needs a way to explicitly allow storing and restoration of
-environment state.
+In order to explore the search space, we needed to use a breadth-first
+search.  However, this came at the expense of simplicity: while a
+depth-first search examines each state immediately after its parent
+state, a breadth-first search hops back and forth between different
+branches of the computation.  Therefore a breadth-first search must
+explicitly allow the storage and restoration of all environment state.
 
-\section{\texttt{ambc} test cases}
+TODO write about envs
+
+TODO failure queue
+
+\subsection{\texttt{ambc} test cases}
 
 Let's return to the Pythagorean triple example from above. SICP defines
 \texttt{an-integer-starting-from} as follows:
@@ -120,6 +124,10 @@ this example. Instead, we provide a different implementation of
         (succeed result)))))
 \end{lstlisting}
 
+\section{Applications to probability}
+
+\subsection{Experiments with randomness}
+
 One great use for \texttt{ambc} is sampling random points from a domain. For
 example, using the definition of \texttt{amb-range} given above, you could
 sample points from the unit circle as follows:
@@ -131,7 +139,7 @@ sample points from the unit circle as follows:
     (list x y)))
 \end{lstlisting}
 
-Unfortunately, this code is flawed and reveals another disadvantage of
+Unfortunately, this code is flawed and reveals a disadvantage of
 breadth-first search. Consider the following transcript:
 \begin{lstlisting}
 ;;; Amb-Eval input:
@@ -278,35 +286,33 @@ For example, we can run:
 \end{lstlisting}
 The exact result of the integral is $2\pi \approx 6.28$.
 
-\section{Applications to probability}
-Once we implemented \texttt{ambc}, we were then able to apply it to probability
-distributions in order to begin selecting over the values of the probability
-distribution. In order to manipulate and deal with probability objects,
-\textit{probobjs}, we constructed methods to transform these objects and combine
-them together:
+\subsection{Probability objects}
 
+We represented probability distributions (``probobjs'') as ambiguous
+values, and implemented a number of functions to create and manipulate
+them as random variables.
 \begin{itemize}
-  \item \textbf{p:sum}: Returns a \textit{probobj} that is the sum of the input
-\textit{probobj}s.
-  \item \textbf{p:mult}: Returns a \textit{probobj} that is the product of the
-input \textit{probobj}s.
-  \item \textbf{p:scale}: Returns a \textit{probobj} that is the scaled form of
+  \item \textbf{p:sum}: Returns a {probobj} that is the sum of the input
+{probobj}s.
+  \item \textbf{p:mult}: Returns a {probobj} that is the product of the
+input {probobj}s.
+  \item \textbf{p:scale}: Returns a {probobj} that is the scaled form of
 the input.
-  \item \textbf{p:shift}: Returns a \textit{probobj} that is a shifted version
+  \item \textbf{p:shift}: Returns a {probobj} that is a shifted version
 of the input.
 \end{itemize}
 
 Once we had established a set of operations to perform on the
-\textit{probobj}s, we are then able to generate more complex probability
+{probobj}s, we are then able to generate more complex probability
 distributions from the initial uniform probability distribution. In order to
 help ensure the probability distributions are correct, and to visualize the
-output of the \textit{probobj}s, we also implemented a ``p:display'' function
-that would generate a visual representation of the \textit{probobj} by taking
+output of the {probobj}s, we also implemented a ``p:display'' function
+that would generate a visual representation of the {probobj} by taking
 many samples which are then placed into bins across the distribution.
 
-In addition to the methods that we created to manipulate \textit{probobj}s, we
+In addition to the methods that we created to manipulate {probobj}s, we
 are also able to use our \texttt{ambc} construction to generate
-\textit{probobj}s deriving from the input one. For example, we can sample from
+{probobj}s deriving from the input one. For example, we can sample from
 the part of the normal distribution above $x$ by using:
 
 \begin{lstlisting}
@@ -317,9 +323,6 @@ the part of the normal distribution above $x$ by using:
       (succeed p))))
 \end{lstlisting}
 
-TODO ABOUT MONTE-CARLO STUFF.
-Why here? We didn't end up hooking our Monte Carlo code into the probobj code
-because the embedded interpreter was too slow for that.
 \section{Directions for future work}
 
 \end{document}
