@@ -132,31 +132,45 @@ Finally, we implemented functions to save all environment state
 (i.e. both the environment stack and procedure-environments map) and
 to restore all environment state from a saved copy.  The existence of
 these procedures is what enabled us to perform backtracking via
-breadth-first search.
+breadth-first search.  These functions are quite inefficient in the
+current implementation---they make a copy of all environments, even
+though the majority will not be modified in each branch.
 
 \subsection{The failure queue and backtracking (\texttt{ambc.scm})}
 
-TODO failure queue
+The new failure queue was much cleaner to implement than the previous
+system of passing around failure continuations, as the majority of
+analyzing functions no longer need to deal with failures at all.  The
+queue exposes two global functions: \texttt{(add-branch continuation)}
+to add a new branch to the end of the queue, and \texttt{(fail)} to
+terminate the current branch and execute the next continuation from
+the queue.  There is also a function called \texttt{*global-fail*},
+which is called when the queue is empty. The repl hooks into this
+function to print the ``no more alternatives'' message.
 
-\subsection{\texttt{ambc} test cases}
+Given this framework, implementing backtracking was quite easy.  The
+only remaining difficulty for implementing \texttt{ambc} was ensuring
+that its argument returns cleanly.  Since the argument finishes by
+escaping to an interpreter continuation rather than returning a value,
+the \texttt{ambc} analyzer needs to clean up any environments that
+were left on the stack.
 
-Let's return to the Pythagorean triple example from above. SICP defines
-\texttt{an-integer-starting-from} as follows:
 \begin{lstlisting}
-(define (an-integer-starting-from n)
-  (amb n (an-integer-starting-from (+ n 1))))
-\end{lstlisting}
-This does not work using our implementation of \texttt{amb}, since it evaluates
-all arguments, and therefore infinitely recurses before returning any values in
-this example. Instead, we provide a different implementation of
-\texttt{an-integer-from} by using \texttt{ambc} to maintain state:
-\begin{lstlisting}
-(define (an-integer-starting-from low)
-  (ambc
-    (lambda (succeed fail)
-      (let ((result low))
-        (set! low (+ low 1))
-        (succeed result)))))
+(define (analyze-ambc exp)
+  (let ((fproc (analyze (cadr exp))))
+    (lambda (succeed)
+      (fproc (lambda (proc)
+               (let loop ()
+                 (define stack (grab-env-stack))
+                 (execute-application
+                  proc
+                  (list (lambda (result)
+                          (set-env-stack! stack)
+                          (add-branch loop)
+                          (succeed result))
+                        fail)
+                  (lambda (val)
+                    (error "ambc argument returned")))))))))
 \end{lstlisting}
 
 \section{Applications to probability}
