@@ -19,13 +19,12 @@
 
 \section{Introduction and motivation}
 
-The \texttt{amb} function offers great adaptability by providing a
-clean mechanism for programs to make discrete choices by implicit
-backtracking.  We aimed to extend \texttt{amb} so that it might also
-represent decisions over an undetermined or possibly infinite space of
-alternatives.  Our thinking was motivated by a desire to use
-\texttt{amb} to manipulate random variables with particular
-probability distributions.
+The \texttt{amb} function provides a clean mechanism for programs to
+make discrete choices by implicit backtracking.  We aimed to extend
+\texttt{amb} so that it might also represent decisions over an
+undetermined or possibly infinite space of alternatives.  We were
+motivated by a desire to use \texttt{amb} to manipulate random
+variables that might have particular probability distributions.
 
 We elected to implement a new interface called
 ``\texttt{amb}-continuation'', or \texttt{ambc}.  Rather then being
@@ -47,12 +46,11 @@ failure as appropriate.
     (fail)))
 \end{lstlisting}
 
-For \texttt{ambc} to do anything useful, it needs some way to maintain
-state between invocations.  Accordingly, we arranged that the
-procedure environment for \texttt{ambc}'s argument would not be reset
-between alternatives.  Then we could easily define the traditional
-\texttt{amb} in terms of \texttt{ambc}:
-
+For \texttt{ambc} to do anything useful, it needed some way to
+maintain state between invocations.  Accordingly, we arranged that the
+parent environment of \texttt{ambc}'s argument would not be reset
+between alternatives.  With that done, we could easily define
+traditional \texttt{amb} in terms of \texttt{ambc}:
 \begin{lstlisting}
 (define (amb . alts)
   (ambc
@@ -63,12 +61,32 @@ between alternatives.  Then we could easily define the traditional
            (set! alts (cdr alts))
            (succeed result))))))
 \end{lstlisting}
+We could also do new things, like selecting from a range of
+floating-point numbers:
+\begin{lstlisting}
+(define (amb-range low high)
+  (ambc
+   (lambda (succeed fail)
+     (succeed (random-float low high))))
+\end{lstlisting}
 
 In the remaining sections, we will discuss the implementation of
-\texttt{ambc} and its utility as a mechanism for representing random
-variables.
+\texttt{ambc} and our efforts to use it as a mechanism for
+representing random variables in Scheme.
 
 \section{Implementation of \texttt{ambc}}
+
+We started with the analyzing Scheme interpreter from problem set 4.
+The failure continuations in this interpreter implicitly define a
+stack, resulting in the backtracking procedure executing via
+depth-first search.  However, depth-first search is not suitable when
+there are choices from infinite sets of alternatives: the search would
+spend forever on the first infinite option and never try a new
+alternative for any other ambiguous values.
+
+In order to implement breadth-first search instead, we'll have to
+develop a solution that more explicitly allows storing and restoration
+of environment state.
 
 \section{\texttt{ambc} test cases}
 
@@ -98,7 +116,7 @@ distribution.
 In addition to the methods that we created to manipulate probobjs, we are also
 able to use our \texttt{ambc} construction to generate probobjs deriving from
 the input one. For example, we can generate the part of the normal distribution
-above $0.25$ by using:\\
+above $0.25$ by using:
 
 \begin{lstlisting}
 (define (px s f) 
