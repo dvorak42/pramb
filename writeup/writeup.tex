@@ -395,7 +395,17 @@ functionality. Some examples of alternative implementations include:
 
 \section{Directions for future work}
 
-\appendix
+Our main remaining issue is inefficient implementation of the
+environment component.  We could attempt to implement environment
+frames as some data structrure with copy-on-write semantics, but for
+computationally intensive studies of probability it would be better to
+abandon the embedded interpreter and implement \texttt{ambc} as a
+macro in the base Scheme interpreter.  Of course, this would bring its
+own set of implementation challenges.
+
+Given that some branches are replayed many times, it might also be
+worthwhile to investicate mechanisms by which code execution could be
+memoized.
 
 \section{Running our code}
 
@@ -413,9 +423,9 @@ Likewise, many of the probability functions are defined in
 \texttt{embedded-prob.scm}. You can instruct init to load multiple
 files into the interpreted environment, such as \texttt{(init
   "embedded-amb.scm" "embedded-prob.scm")}. Finally, if the
-interpreter ever quits due to an error, you can either
-re-\texttt{init} to return to an interpreter with a default
-environment, or run \texttt{(driver-loop)} to resume the interpreter
-in its former environment.
+interpreter quits due to an error, you can either re-\texttt{init} to
+return to an interpreter with a default environment, or run
+\texttt{(driver-loop)} to resume the interpreter in its former
+environment.
 
 \end{document}
