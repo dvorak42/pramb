@@ -117,7 +117,7 @@ top environment, save the a pointer to the current head, and restore
 a saved head pointer.  The stack is simply implemented as a list.
 
 The procedure-environments map is necessary so that procedures know in
-which environment they should be executed.  This informaton was
+which environment they should be executed.  This information was
 formerly stored as an element of the compound-procedure object, but
 such a technique no longer works because we need to swap out all
 procedure environments each time backtracking occurs.  The
@@ -288,11 +288,13 @@ distribution. (For instance, running the same chi-squared test on
 indicating no reason to believe that the observed distribution was any
 different from the expected distribution.)  However, both require
 essentially implementing two versions of \texttt{amb-range}: the first
-strategy duplicates \texttt{amb-range}'s definition of
+strategy duplicates \texttt{amb-range}'s code inside
 \texttt{amb-ranges}, and the second strategy duplicates it in
 \texttt{amb-range-nested}. One area we're still actively working on is
 finding a way to ensure uniform randomness in a generic way that does
 not require duplicating or re-writing any functionality.
+
+\subsection{Monte Carlo integration}
 
 Given a way to sample points randomly from a domain, implementing
 Monte Carlo integration is simple. Given a function \texttt{func} that
@@ -356,7 +358,7 @@ them as random variables.
 \end{itemize}
 
 Once we had established a set of operations to perform on the
-{probobj}s, we are then able to generate more complex probability
+{probobj}s, we were then able to generate more complex probability
 distributions from the initial uniform probability distribution. In
 order to help ensure the probability distributions are correct, and to
 visualize the output of the {probobj}s, we also implemented a
@@ -391,21 +393,25 @@ functionality. Some examples of alternative implementations include:
     set of parameters to a generalized distribution that can generate the values
     for the distribution on constant time, rather than combining multiple
     probability distributions to generate the expected distribution.
-\end{itemize} 
+\end{itemize}
 
 \section{Directions for future work}
 
 Our main remaining issue is inefficient implementation of the
 environment component.  We could attempt to implement environment
-frames as some data structrure with copy-on-write semantics, but for
+frames as some data structure with copy-on-write semantics, but for
 computationally intensive studies of probability it would be better to
 abandon the embedded interpreter and implement \texttt{ambc} as a
 macro in the base Scheme interpreter.  Of course, this would bring its
 own set of implementation challenges.
 
 Given that some branches are replayed many times, it might also be
-worthwhile to investicate mechanisms by which code execution could be
+worthwhile to investigate mechanisms by which code execution could be
 memoized.
+
+Finally, we would love any suggestions regarding additional
+applications of \texttt{ambc} or probobjs, which we would love to
+implement to continue testing our system.
 
 \section{Running our code}
 
